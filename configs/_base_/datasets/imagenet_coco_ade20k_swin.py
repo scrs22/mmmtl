@@ -49,24 +49,24 @@ cls_test_pipeline = [
     dict(type='ImageToTensor', keys=['img']),
     dict(type='Collect', keys=['img'])
 ]
-cls_data = dict(
-    samples_per_gpu=64,
-    workers_per_gpu=8,
-    train=dict(
-        type=cls_dataset_type,
-        data_prefix='data/imagenet/train',
-        pipeline=cls_train_pipeline),
-    val=dict(
-        type=cls_dataset_type,
-        data_prefix='data/imagenet/val',
-        # ann_file='data/imagenet/meta/val.txt',
-        pipeline=cls_test_pipeline),
-    test=dict(
-        # replace `data/val` with `data/test` for standard test
-        type=cls_dataset_type,
-        data_prefix='data/imagenet/val',
-        # ann_file='data/imagenet/meta/val.txt',
-        pipeline=cls_test_pipeline))
+# cls_data = dict(
+#     samples_per_gpu=64,
+#     workers_per_gpu=8,
+#     train=dict(
+#         type=cls_dataset_type,
+#         data_prefix='data/imagenet/train',
+#         pipeline=cls_train_pipeline),
+#     val=dict(
+#         type=cls_dataset_type,
+#         data_prefix='data/imagenet/val',
+#         # ann_file='data/imagenet/meta/val.txt',
+#         pipeline=cls_test_pipeline),
+#     test=dict(
+#         # replace `data/val` with `data/test` for standard test
+#         type=cls_dataset_type,
+#         data_prefix='data/imagenet/val',
+#         # ann_file='data/imagenet/meta/val.txt',
+#         pipeline=cls_test_pipeline))
 
 # evaluation = dict(interval=10, metric='accuracy')
 
@@ -99,32 +99,30 @@ det_test_pipeline = [
             dict(type='Collect', keys=['img']),
         ])
 ]
-det_data = dict(
-    samples_per_gpu=2,
-    workers_per_gpu=2,
-    train=dict(
-        type=det_dataset_type,
-        ann_file=det_data_root + 'annotations/instances_train2017.json',
-        img_prefix=det_data_root + 'train2017/',
-        pipeline=det_train_pipeline),
-    val=dict(
-        type=det_dataset_type,
-        ann_file=det_data_root + 'annotations/instances_val2017.json',
-        img_prefix=det_data_root + 'val2017/',
-        pipeline=det_test_pipeline),
-    test=dict(
-        type=det_dataset_type,
-        ann_file=det_data_root + 'annotations/instances_val2017.json',
-        img_prefix=det_data_root + 'val2017/',
-        pipeline=det_test_pipeline))
+# det_data = dict(
+#     samples_per_gpu=2,
+#     workers_per_gpu=2,
+#     train=dict(
+#         type=det_dataset_type,
+#         ann_file=det_data_root + 'annotations/instances_train2017.json',
+#         img_prefix=det_data_root + 'train2017/',
+#         pipeline=det_train_pipeline),
+#     val=dict(
+#         type=det_dataset_type,
+#         ann_file=det_data_root + 'annotations/instances_val2017.json',
+#         img_prefix=det_data_root + 'val2017/',
+#         pipeline=det_test_pipeline),
+#     test=dict(
+#         type=det_dataset_type,
+#         ann_file=det_data_root + 'annotations/instances_val2017.json',
+#         img_prefix=det_data_root + 'val2017/',
+#         pipeline=det_test_pipeline))
 # evaluation = dict(metric=['bbox', 'segm'])
 
 
 # dataset settings
 seg_dataset_type = 'ADE20KDataset'
 seg_data_root = 'data/ADEChallengeData2016'
-img_norm_cfg = dict(
-    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 crop_size = (512, 512)
 seg_train_pipeline = [
     dict(type='LoadImageFromFile'),
@@ -153,28 +151,39 @@ seg_test_pipeline = [
             dict(type='Collect', keys=['img']),
         ])
 ]
-seg_data = dict(
+# seg_data = dict(
+#     samples_per_gpu=4,
+#     workers_per_gpu=4,
+#     train=dict(
+#         type=seg_dataset_type,
+#         data_root=seg_data_root,
+#         img_dir='images/training',
+#         ann_dir='annotations/training',
+#         pipeline=seg_train_pipeline),
+#     val=dict(
+#         type=seg_dataset_type,
+#         data_root=seg_data_root,
+#         img_dir='images/validation',
+#         ann_dir='annotations/validation',
+#         pipeline=seg_est_pipeline),
+#     test=dict(
+#         type=seg_dataset_type,
+#         data_root=seg_data_root,
+#         img_dir='images/validation',
+#         ann_dir='annotations/validation',
+#         pipeline=seg_test_pipeline))
+
+
+data = dict(
     samples_per_gpu=4,
     workers_per_gpu=4,
     train=dict(
-        type=seg_dataset_type,
-        data_root=seg_data_root,
-        img_dir='images/training',
-        ann_dir='annotations/training',
-        pipeline=seg_train_pipeline),
-    val=dict(
-        type=seg_dataset_type,
-        data_root=seg_data_root,
-        img_dir='images/validation',
-        ann_dir='annotations/validation',
-        pipeline=seg_est_pipeline),
-    test=dict(
-        type=seg_dataset_type,
-        data_root=seg_data_root,
-        img_dir='images/validation',
-        ann_dir='annotations/validation',
-        pipeline=seg_test_pipeline))
-
-
-
+        type='ConcatDataset',
+        datasets = [
+            dict(type=cls_dataset_type,data_prefix='data/imagenet/train',pipeline=cls_train_pipeline),
+            dict(type=det_dataset_type,ann_file=det_data_root + 'annotations/instances_train2017.json',img_prefix=det_data_root + 'train2017/',pipeline=det_train_pipeline),
+            dict(type=seg_dataset_type,data_root=seg_data_root,img_dir='images/training',ann_dir='annotations/training',pipeline=seg_train_pipeline),
+        ]
+    )
+)
 
