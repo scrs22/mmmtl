@@ -1,12 +1,12 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from ..builder import CLASSIFIERS, build_backbone, build_head, build_neck
+from ..builder import MTLEARNERS, build_backbone, build_head, build_neck
 from ..heads import MultiLabelClsHead
 from ..utils.augment import Augments
-from .base import BaseClassifier
+from .base import BaseMTLearner
 
 
-@CLASSIFIERS.register_module()
-class ImageClassifier(BaseClassifier):
+@MTLEARNERS.register_module()
+class ImageMTLearner(BaseMTLearner):
 
     def __init__(self,
                  backbone,
@@ -15,7 +15,7 @@ class ImageClassifier(BaseClassifier):
                  pretrained=None,
                  train_cfg=None,
                  init_cfg=None):
-        super(ImageClassifier, self).__init__(init_cfg)
+        super(ImageMTLearner, self).__init__(init_cfg)
 
         if pretrained is not None:
             self.init_cfg = dict(type='Pretrained', checkpoint=pretrained)
@@ -108,13 +108,7 @@ class ImageClassifier(BaseClassifier):
             (f'Invalid output stage "{stage}", please choose from "backbone", '
              '"neck" and "pre_logits"')
 
-        # print('img.shape: ', img.shape)
         x = self.backbone(img)
-
-        if isinstance(x, list):
-            x = x[-1]
-        # print(x)
-        # print('x.shape: ', x.shape)
 
         if stage == 'backbone':
             return x

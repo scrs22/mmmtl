@@ -76,13 +76,13 @@ det_dataset_type = 'CocoDataset'
 det_data_root = 'data/coco/'
 det_train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+    dict(type='LoadAnnotations', with_bbox=True),
     dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size_divisor=32),
     dict(type='DefaultFormatBundle'),
-    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels', 'gt_masks']),
+    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
 ]
 det_test_pipeline = [
     dict(type='LoadImageFromFile'),
@@ -175,8 +175,8 @@ seg_test_pipeline = [
 
 
 data = dict(
-    samples_per_gpu=4,
-    workers_per_gpu=4,
+    # samples_per_gpu=4,
+    # workers_per_gpu=4,
     train=dict(
         type='ConcatDataset',
         datasets = [
@@ -185,5 +185,11 @@ data = dict(
             dict(type=seg_dataset_type,data_root=seg_data_root,img_dir='images/training',ann_dir='annotations/training',pipeline=seg_train_pipeline),
         ]
     )
+    train_dataloader=dict(samples_per_gpu=8, workers_per_gpu=2,
+        sampler_cfg=dict(
+            type='Distributed_Weighted_BatchSampler', 
+            
+        )),
+
 )
 

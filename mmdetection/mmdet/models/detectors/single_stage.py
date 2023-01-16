@@ -29,7 +29,11 @@ class SingleStageDetector(BaseDetector):
             warnings.warn('DeprecationWarning: pretrained is deprecated, '
                           'please use "init_cfg" instead')
             backbone.pretrained = pretrained
-        self.backbone = build_backbone(backbone)
+
+        if type(backbone) is dict:
+            self.backbone = build_backbone(backbone)
+        else:
+            self.backbone = backbone
         if neck is not None:
             self.neck = build_neck(neck)
         bbox_head.update(train_cfg=train_cfg)

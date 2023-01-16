@@ -316,6 +316,8 @@ class SwinTransformer(BaseBackbone):
                  init_cfg=None):
         super(SwinTransformer, self).__init__(init_cfg=init_cfg)
 
+        # print('img_size: ', img_size, patch_size)
+        # print('embd_dims: ', )
         if isinstance(arch, str):
             arch = arch.lower()
             assert arch in set(self.arch_zoo), \
@@ -546,3 +548,5 @@ class SwinTransformer(BaseBackbone):
                     # The index buffer need to be re-generated.
                     index_buffer = ckpt_key.replace('bias_table', 'index')
                     del state_dict[index_buffer]
+
+
