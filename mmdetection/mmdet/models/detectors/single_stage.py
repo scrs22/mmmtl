@@ -6,6 +6,7 @@ import torch
 from mmdet.core import bbox2result
 from ..builder import DETECTORS, build_backbone, build_head, build_neck
 from .base import BaseDetector
+from mmcv.utils.config import ConfigDict
 
 
 @DETECTORS.register_module()
@@ -30,10 +31,15 @@ class SingleStageDetector(BaseDetector):
                           'please use "init_cfg" instead')
             backbone.pretrained = pretrained
 
-        if type(backbone) is dict:
+
+        print('type: ', type(backbone))
+
+        if type(backbone) is dict or isinstance(backbone, ConfigDict):
             self.backbone = build_backbone(backbone)
         else:
             self.backbone = backbone
+
+
         if neck is not None:
             self.neck = build_neck(neck)
         bbox_head.update(train_cfg=train_cfg)

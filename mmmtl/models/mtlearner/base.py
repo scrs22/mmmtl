@@ -37,39 +37,64 @@ class BaseMTLearner(BaseModule, metaclass=ABCMeta):
             yield self.extract_feat(img, **kwargs)
 
     @abstractmethod
-    def forward_train(self, imgs, **kwargs):
+    def forward_train(self, imgs, img_meta, **kwargs):
         """
         Args:
             img (list[Tensor]): List of tensors of shape (1, C, H, W).
                 Typically these should be mean centered and std scaled.
             kwargs (keyword arguments): Specific to concrete implementation.
         """
-        pass
+        batch_input_shape = tuple(imgs[0].size()[-2:])
+        for img_meta in img_metas:
+            img_meta['batch_input_shape'] = batch_input_shape
 
     @abstractmethod
-    def simple_test(self, img, **kwargs):
+    def simple_test(self, img, img_meta, **kwargs):
         pass
 
-    def forward_test(self, imgs, **kwargs):
+    def forward_test(self, imgs, img_meta, **kwargs):
         """
         Args:
             imgs (List[Tensor]): the outer list indicates test-time
                 augmentations and inner Tensor should have a shape NxCxHxW,
                 which contains all images in the batch.
         """
-        if isinstance(imgs, torch.Tensor):
-            imgs = [imgs]
-        for var, name in [(imgs, 'imgs')]:
+        for var, name in [(imgs, 'imgs'), (img_metas, 'img_metas')]:
             if not isinstance(var, list):
                 raise TypeError(f'{name} must be a list, but got {type(var)}')
 
-        if len(imgs) == 1:
-            return self.simple_test(imgs[0], **kwargs)
+        num_augs = len(imgs)
+        if num_augs != len(img_metas):
+            raise ValueError(f'num of augmentations ({len(imgs)}) '
+                             f'!= num of image meta ({len(img_metas)})')
+
+        # NOTE the batched image size information may be useful, e.g.
+        # in DETR, this is needed for the construction of masks, which is
+        # then used for the transformer_head.
+        for img, img_meta in zip(imgs, img_metas):
+            batch_size = len(img_meta)
+            for img_id in range(batch_size):
+                img_meta[img_id]['batch_input_shape'] = tuple(img.size()[-2:])
+
+        if num_augs == 1:
+            # proposals (List[List[Tensor]]): the outer list indicates
+            # test-time augs (multiscale, flip, etc.) and the inner list
+            # indicates images in a batch.
+            # The Tensor should have a shape Px4, where P is the number of
+            # proposals.
+            if 'proposals' in kwargs:
+                kwargs['proposals'] = kwargs['proposals'][0]
+            return self.simple_test(imgs[0], img_metas[0], **kwargs)
         else:
-            raise NotImplementedError('aug_test has not been implemented')
+            assert imgs[0].size(0) == 1, 'aug test does not support ' \
+                                         'inference with batch size ' \
+                                         f'{imgs[0].size(0)}'
+            # TODO: support test augmentation for predefined proposals
+            assert 'proposals' not in kwargs
+            return self.aug_test(imgs, img_metas, **kwargs)
 
     @auto_fp16(apply_to=('img', ))
-    def forward(self, img, return_loss=True, **kwargs):
+    def forward(self, img, img_meta, return_loss=True, **kwargs):
         """Calls either forward_train or forward_test depending on whether
         return_loss=True.
 
@@ -80,9 +105,9 @@ class BaseMTLearner(BaseModule, metaclass=ABCMeta):
         list indicating test time augmentations.
         """
         if return_loss:
-            return self.forward_train(img, **kwargs)
+            return self.forward_train(img, img_meta, **kwargs)
         else:
-            return self.forward_test(img, **kwargs)
+            return self.forward_test(img, img_meta, **kwargs)
 
     def _parse_losses(self, losses):
         log_vars = OrderedDict()

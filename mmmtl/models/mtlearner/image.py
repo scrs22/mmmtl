@@ -1,5 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from ..builder import MTLEARNERS, build_backbone, build_head, build_neck
+from ..builder import build_mtlearner, build_backbone, build_head, build_neck
 from ..heads import MultiLabelClsHead
 from ..utils.augment import Augments
 from .base import BaseMTLearner
@@ -10,6 +10,7 @@ class ImageMTLearner(BaseMTLearner):
 
     def __init__(self,
                  backbone,
+                 models=None,
                  neck=None,
                  head=None,
                  pretrained=None,
@@ -20,6 +21,15 @@ class ImageMTLearner(BaseMTLearner):
         if pretrained is not None:
             self.init_cfg = dict(type='Pretrained', checkpoint=pretrained)
         self.backbone = build_backbone(backbone)
+
+        if models is None:
+            assert False
+
+        self.mt_models = []
+        for model_cfg in models:
+            model_cfg['backbone'] = self.backbone
+            model = build_mtlearner(model_cfg)
+            self.mt_models.append(model)
 
         if neck is not None:
             self.neck = build_neck(neck)
@@ -113,16 +123,16 @@ class ImageMTLearner(BaseMTLearner):
         if stage == 'backbone':
             return x
 
-        if self.with_neck:
-            x = self.neck(x)
-        if stage == 'neck':
-            return x
+        # if self.with_neck:
+        #     x = self.neck(x)
+        # if stage == 'neck':
+        #     return x
 
-        if self.with_head and hasattr(self.head, 'pre_logits'):
-            x = self.head.pre_logits(x)
+        # if self.with_head and hasattr(self.head, 'pre_logits'):
+        #     x = self.head.pre_logits(x)
         return x
 
-    def forward_train(self, img, gt_label, **kwargs):
+    def forward_train(self, img, data, task_bh, **kwargs):
         """Forward computation during training.
 
         Args:
@@ -135,13 +145,18 @@ class ImageMTLearner(BaseMTLearner):
         Returns:
             dict[str, Tensor]: a dictionary of loss components
         """
-        if self.augments is not None:
-            img, gt_label = self.augments(img, gt_label)
+        # if self.augments is not None:
+        #     img, gt_label = self.augments(img, gt_label)
 
-        x = self.extract_feat(img)
+
+        # x = self.extract_feat(img)
+
+        loss = self.mt_models[task_bh].forward_train(img, data)
+
+        # add all loss not used as 0
 
         losses = dict()
-        loss = self.head.forward_train(x, gt_label)
+        # loss = self.head.forward_train(x, gt_label)
 
         losses.update(loss)
 
