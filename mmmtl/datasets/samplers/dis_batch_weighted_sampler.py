@@ -6,15 +6,15 @@ import math
 import torch
 from torch.utils.data import DistributedSampler as _DistributedSampler
 
-from mmdet.core.utils import sync_random_seed
-from mmdet.utils import get_device
+from mmmtl.core.utils import sync_random_seed
+from mmdetection.mmdet.utils import get_device
+from mmmtl.datasets import SAMPLERS
 
 import math
 from typing import TypeVar, Optional, Iterator, Iterable, Sequence, List, Generic, Sized, Union
 
 import torch
 from torch.utils.data import Sampler, Dataset
-from mmdet.datasets.distributed_sampler import DistributedSampler
 import torch.distributed as dist
 
 class DistributedBatchSampler(_DistributedSampler):
@@ -41,6 +41,7 @@ class DistributedBatchSampler(_DistributedSampler):
         self.recursice = recursive
         device = get_device()
         self.seed = sync_random_seed(seed, device)
+        self.is_batch_sampler = True
 
         self.prefix = prefix
 
@@ -81,11 +82,11 @@ class DistributedBatchSampler(_DistributedSampler):
     def __len__(self) -> int:
         return (self.num_samples + self.batch_size - 1) // self.batch_size
 
-
+@SAMPLERS.register_module()
 class Distributed_Weighted_BatchSampler(_DistributedSampler):
 
     def __init__(self,
-                 datasets,
+                 dataset,
                  batch_sizes,
                  weights,
                  num_samples = 32,
@@ -105,11 +106,11 @@ class Distributed_Weighted_BatchSampler(_DistributedSampler):
             raise ValueError(
                 "Invalid rank {}, rank should be in the interval"
                 " [0, {}]".format(rank, num_replicas - 1))
-        self.datasets = datasets
+        self.datasets = dataset.datasets
         self.samplers = []
         self.sampleriters = []
         cur_len = 0
-        for idx, dataset in enumerate(datasets):
+        for idx, dataset in enumerate(self.datasets):
             sampler = DistributedBatchSampler(dataset, batch_sizes[idx], prefix=cur_len,
                         num_replicas=num_replicas, rank=rank, shuffle=shuffle, seed=seed)
             self.samplers.append(sampler)
@@ -128,6 +129,7 @@ class Distributed_Weighted_BatchSampler(_DistributedSampler):
 
         device = get_device()
         self.seed = sync_random_seed(seed, device)
+        self.is_batch_sampler = True
             
 
     def __iter__(self):

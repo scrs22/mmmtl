@@ -4,8 +4,8 @@ import torch
 from mmcv.runner import get_dist_info
 from torch.utils.data import Sampler
 
-from mmcls.core.utils import sync_random_seed
-from mmcls.datasets import SAMPLERS
+from mmmtl.core.utils import sync_random_seed
+from mmmtl.datasets import SAMPLERS
 
 
 @SAMPLERS.register_module()

@@ -24,8 +24,162 @@ class ConcatMultiTypeDataset(_ConcatDataset):
             Defaults to True.
     """
 
-    def __init__(self, datasets):
+    def __init__(self, datasets, separate_eval=True):
         super(ConcatMultiTypeDataset, self).__init__(datasets)
+
+        if not separate_eval:
+                raise NotImplementedError(
+                    'separate evaluation is not supported by now.')
+
+    def get_cat_ids(self, idx):
+        if idx < 0:
+            if -idx > len(self):
+                raise ValueError(
+                    'absolute value of index should not exceed dataset length')
+            idx = len(self) + idx
+        dataset_idx = bisect.bisect_right(self.cumulative_sizes, idx)
+        if dataset_idx == 0:
+            sample_idx = idx
+        else:
+            sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
+        return self.datasets[dataset_idx].get_cat_ids(sample_idx)
+    
+    def get_ann_info(self, idx):
+        """Get annotation of concatenated dataset by index.
+
+        Args:
+            idx (int): Index of data.
+
+        Returns:
+            dict: Annotation info of specified index.
+        """
+
+        if idx < 0:
+            if -idx > len(self):
+                raise ValueError(
+                    'absolute value of index should not exceed dataset length')
+            idx = len(self) + idx
+        dataset_idx = bisect.bisect_right(self.cumulative_sizes, idx)
+        if dataset_idx == 0:
+            sample_idx = idx
+        else:
+            sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
+        return self.datasets[dataset_idx].get_ann_info(sample_idx)
+    
+    def evaluate(self, results, *args, indices=None, logger=None, **kwargs):
+        """Evaluate the results.
+
+        Args:
+            results (list[list | tuple]): Testing results of the dataset.
+            indices (list, optional): The indices of samples corresponding to
+                the results. It's unavailable on ConcatDataset.
+                Defaults to None.
+            logger (logging.Logger | str, optional): Logger used for printing
+                related information during evaluation. Defaults to None.
+
+        Returns:
+            dict[str: float]: AP results of the total dataset or each separate
+            dataset if `self.separate_eval=True`.
+        """
+        if indices is not None:
+            raise NotImplementedError(
+                'Use indices to evaluate speific samples in a ConcatDataset '
+                'is not supported by now.')
+                
+        """
+        assert len(results) == len(self), \
+            ('Dataset and results have different sizes: '
+             f'{len(self)} v.s. {len(results)}')
+        """
+
+        # Check whether all the datasets support evaluation
+        for dataset in self.datasets:
+            assert hasattr(dataset, 'evaluate'), \
+                f"{type(dataset)} haven't implemented the evaluate function."
+
+        
+        total_eval_results = dict()
+        for dataset_idx, dataset in enumerate(self.datasets):
+            start_idx = 0 if dataset_idx == 0 else \
+                self.cumulative_sizes[dataset_idx-1]
+            end_idx = self.cumulative_sizes[dataset_idx]
+
+            results_per_dataset = results[start_idx:end_idx]
+            print_log(
+                f'Evaluateing dataset-{dataset_idx} with '
+                f'{len(results_per_dataset)} images now',
+                logger=logger)
+
+            eval_results_per_dataset = dataset.evaluate(
+                results_per_dataset, *args, logger=logger, **kwargs)
+            for k, v in eval_results_per_dataset.items():
+                total_eval_results.update({f'{dataset_idx}_{k}': v})
+
+        return total_eval_results
+
+    def get_dataset_idx_and_sample_idx(self, indice):
+        """Return dataset and sample index when given an indice of
+        ConcatDataset.
+
+        Args:
+            indice (int): indice of sample in ConcatDataset
+
+        Returns:
+            int: the index of sub dataset the sample belong to
+            int: the index of sample in its corresponding subset
+        """
+        if indice < 0:
+            if -indice > len(self):
+                raise ValueError(
+                    'absolute value of index should not exceed dataset length')
+            indice = len(self) + indice
+        dataset_idx = bisect.bisect_right(self.cumulative_sizes, indice)
+        if dataset_idx == 0:
+            sample_idx = indice
+        else:
+            sample_idx = indice - self.cumulative_sizes[dataset_idx - 1]
+        return dataset_idx, sample_idx
+
+    def format_results(self, results, imgfile_prefix, indices=None, **kwargs):
+        """format result for every sample of ConcatDataset."""
+        if indices is None:
+            indices = list(range(len(self)))
+
+        assert isinstance(results, list), 'results must be a list.'
+        assert isinstance(indices, list), 'indices must be a list.'
+
+        ret_res = []
+        for i, indice in enumerate(indices):
+            dataset_idx, sample_idx = self.get_dataset_idx_and_sample_idx(
+                indice)
+            if hasattr(self.datasets[dataset_idx], 'format_results'):
+                res = self.datasets[dataset_idx].format_results(
+                    [results[i]],
+                    imgfile_prefix + f'/{dataset_idx}',
+                    indices=[sample_idx],
+                    **kwargs)
+            else:
+                res = [results[i]]
+            ret_res.append(res[0])
+        return ret_res
+
+    def pre_eval(self, preds, indices):
+        """do pre eval for every sample of ConcatDataset."""
+        # In order to compat with batch inference
+        if not isinstance(indices, list):
+            indices = [indices]
+        if not isinstance(preds, list):
+            preds = [preds]
+        ret_res = []
+        for i, indice in enumerate(indices):
+            dataset_idx, sample_idx = self.get_dataset_idx_and_sample_idx(
+                indice)
+            if hasattr(self.datasets[dataset_idx], 'pre_eval'):
+                res = self.datasets[dataset_idx].pre_eval(preds[i], sample_idx)
+            else:
+                res = [preds[i]]
+            ret_res.append(res[0])
+        return ret_res
 
 @DATASETS.register_module()
 class ConcatDataset(_ConcatDataset):

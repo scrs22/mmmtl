@@ -31,9 +31,13 @@ SAMPLERS = Registry('sampler')
 
 def build_dataset(cfg, default_args=None):
     from .dataset_wrappers import (ClassBalancedDataset, ConcatDataset,
-                                   KFoldDataset, RepeatDataset)
+                                   KFoldDataset, RepeatDataset, ConcatMultiTypeDataset)
     if isinstance(cfg, (list, tuple)):
-        dataset = ConcatDataset([build_dataset(c, default_args) for c in cfg])
+        dataset = ConcatMultiTypeDataset([build_dataset(c, default_args) for c in cfg])
+    elif cfg['type'] == 'ConcatMultiTypeDataset':
+        dataset = ConcatMultiTypeDataset(
+            [build_dataset(c, default_args) for c in cfg['datasets']],
+            separate_eval=cfg.get('separate_eval', True))
     elif cfg['type'] == 'ConcatDataset':
         dataset = ConcatDataset(
             [build_dataset(c, default_args) for c in cfg['datasets']],
@@ -65,6 +69,7 @@ def build_dataloader(dataset,
                      shuffle=True,
                      round_up=True,
                      seed=None,
+                     runner_type='IterBasedRunner',
                      pin_memory=True,
                      persistent_workers=True,
                      sampler_cfg=None,
@@ -86,6 +91,8 @@ def build_dataloader(dataset,
             Default: True.
         round_up (bool): Whether to round up the length of dataset by adding
             extra samples to make it evenly divisible. Default: True.
+        seed (int, Optional): Seed to be used. Default: None.
+        runner_type (str): Type of runner. Default: `IterBasedRunner`
         pin_memory (bool): Whether to use pin_memory in DataLoader.
             Default: True
         persistent_workers (bool): If True, the data loader will not shutdown
@@ -153,11 +160,17 @@ def build_dataloader(dataset,
             worker_init_fn=init_fn,
             **kwargs)
     else:
+        batch_sampler = None
+        if hasattr(sampler, 'is_batch_sampler'):
+            batch_sampler = sampler
+            sampler = None
+            batch_size = 1
         data_loader = DataLoader(
             dataset,
             batch_size=batch_size,
             sampler=sampler,
             num_workers=num_workers,
+            batch_sampler=batch_sampler,
             collate_fn=partial(collate, samples_per_gpu=samples_per_gpu),
             pin_memory=pin_memory,
             shuffle=shuffle,
