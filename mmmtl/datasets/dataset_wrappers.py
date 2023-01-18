@@ -55,7 +55,11 @@ class ConcatMultiTypeDataset(_ConcatDataset):
    
     def __getitem__(self,idx):
         dataset_idx, sample_idx = self.get_dataset_idx_and_sample_idx(idx)
-        return dict(dataset_idx = dataset_idx, data = self.datasets[dataset_idx][sample_idx])
+        data = self.datasets[dataset_idx][sample_idx]
+        if isinstance(data, dict):
+            data["dataset_idx"]=dataset_idx
+            return data
+        return dict(dataset_idx = dataset_idx, data = data)
 
     def get_cat_ids(self, idx):
         dataset_idx, sample_idx = self.get_dataset_idx_and_sample_idx(idx)
