@@ -288,7 +288,7 @@ class SwinTransformerV2(BaseBackbone):
             Defaults to None.
 
     Examples:
-        >>> from mmcls.models import SwinTransformerV2
+        >>> from mmmtl.models import SwinTransformerV2
         >>> import torch
         >>> extra_config = dict(
         >>>     arch='tiny',
@@ -528,7 +528,7 @@ class SwinTransformerV2(BaseBackbone):
 
         ckpt_pos_embed_shape = state_dict[name].shape
         if self.absolute_pos_embed.shape != ckpt_pos_embed_shape:
-            from mmcls.utils import get_root_logger
+            from mmmtl.utils import get_root_logger
             logger = get_root_logger()
             logger.info(
                 'Resize the absolute_pos_embed shape from '

@@ -9,8 +9,8 @@ import mmcv
 import numpy as np
 from torch.utils.data import Dataset
 
-from mmcls.core.evaluation import precision_recall_f1, support
-from mmcls.models.losses import accuracy
+from mmmtl.core.evaluation import precision_recall_f1, support
+from mmmtl.models.losses import accuracy
 from .pipelines import Compose
 
 

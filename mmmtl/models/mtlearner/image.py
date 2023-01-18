@@ -1,5 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from ..builder import build_mtlearner, build_backbone, build_head, build_neck
+from ..builder import build_mtlearner, build_backbone, build_head, build_neck, MTLEARNERS
 from ..heads import MultiLabelClsHead
 from ..utils.augment import Augments
 from .base import BaseMTLearner
@@ -70,7 +70,7 @@ class ImageMTLearner(BaseMTLearner):
 
             >>> import torch
             >>> from mmcv import Config
-            >>> from mmcls.models import build_classifier
+            >>> from mmmtl.models import build_classifier
             >>>
             >>> cfg = Config.fromfile('configs/resnet/resnet18_8xb32_in1k.py').model
             >>> cfg.backbone.out_indices = (0, 1, 2, 3)  # Output multi-scale feature maps
@@ -87,7 +87,7 @@ class ImageMTLearner(BaseMTLearner):
 
             >>> import torch
             >>> from mmcv import Config
-            >>> from mmcls.models import build_classifier
+            >>> from mmmtl.models import build_classifier
             >>>
             >>> cfg = Config.fromfile('configs/resnet/resnet18_8xb32_in1k.py').model
             >>> cfg.backbone.out_indices = (0, 1, 2, 3)  # Output multi-scale feature maps
@@ -105,7 +105,7 @@ class ImageMTLearner(BaseMTLearner):
 
             >>> import torch
             >>> from mmcv import Config
-            >>> from mmcls.models import build_classifier
+            >>> from mmmtl.models import build_classifier
             >>>
             >>> cfg = Config.fromfile('configs/vision_transformer/vit-base-p16_pt-64xb64_in1k-224.py').model
             >>> model = build_classifier(cfg)

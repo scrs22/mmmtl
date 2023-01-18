@@ -3,7 +3,7 @@ from typing import List
 
 import numpy as np
 
-from mmcls.core import average_performance, mAP
+from mmmtl.core import average_performance, mAP
 from .base_dataset import BaseDataset
 
 

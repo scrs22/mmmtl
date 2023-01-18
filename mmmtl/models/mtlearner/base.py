@@ -8,7 +8,7 @@ import torch
 import torch.distributed as dist
 from mmcv.runner import BaseModule, auto_fp16
 
-from mmcls.core.visualization import imshow_infos
+from mmmtl.core.visualization import imshow_infos
 
 
 class BaseMTLearner(BaseModule, metaclass=ABCMeta):
