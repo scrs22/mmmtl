@@ -37,13 +37,21 @@ class BaseMTLearner(BaseModule, metaclass=ABCMeta):
             yield self.extract_feat(img, **kwargs)
 
     @abstractmethod
-    def forward_train(self, imgs, img_meta, **kwargs):
+    def forward_train(self, imgs, img_metas, **kwargs):
         """
         Args:
             img (list[Tensor]): List of tensors of shape (1, C, H, W).
                 Typically these should be mean centered and std scaled.
+            img_metas (list[dict]): List of image info dict where each dict
+                has: 'img_shape', 'scale_factor', 'flip', and may also contain
+                'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
+                For details on the values of these keys, see
+                :class:`mmdet.datasets.pipelines.Collect`.
             kwargs (keyword arguments): Specific to concrete implementation.
         """
+        # NOTE the batched image size information may be useful, e.g.
+        # in DETR, this is needed for the construction of masks, which is
+        # then used for the transformer_head.
         batch_input_shape = tuple(imgs[0].size()[-2:])
         for img_meta in img_metas:
             img_meta['batch_input_shape'] = batch_input_shape
@@ -52,12 +60,15 @@ class BaseMTLearner(BaseModule, metaclass=ABCMeta):
     def simple_test(self, img, img_meta, **kwargs):
         pass
 
-    def forward_test(self, imgs, img_meta, **kwargs):
+    def forward_test(self, imgs, img_metas, **kwargs):
         """
         Args:
             imgs (List[Tensor]): the outer list indicates test-time
                 augmentations and inner Tensor should have a shape NxCxHxW,
                 which contains all images in the batch.
+            img_metas (List[List[dict]]): the outer list indicates test-time
+                augs (multiscale, flip, etc.) and the inner list indicates
+                images in a batch.
         """
         for var, name in [(imgs, 'imgs'), (img_metas, 'img_metas')]:
             if not isinstance(var, list):

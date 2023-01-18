@@ -30,18 +30,35 @@ class ConcatMultiTypeDataset(_ConcatDataset):
         if not separate_eval:
                 raise NotImplementedError(
                     'separate evaluation is not supported by now.')
+    
+    def get_dataset_idx_and_sample_idx(self, indice):
+        """Return dataset and sample index when given an indice of
+        ConcatDataset.
+
+        Args:
+            indice (int): indice of sample in ConcatDataset
+
+        Returns:
+            int: the index of sub dataset the sample belong to
+            int: the index of sample in its corresponding subset
+        """
+        if indice < 0:
+            if -indice > len(self):
+                raise ValueError('absolute value of index should not exceed dataset length')
+            indice = len(self) + indice
+        dataset_idx = bisect.bisect_right(self.cumulative_sizes, indice)
+        if dataset_idx == 0:
+            sample_idx = indice
+        else:
+            sample_idx = indice - self.cumulative_sizes[dataset_idx - 1]
+        return dataset_idx, sample_idx
+   
+    def __getitem__(self,idx):
+        dataset_idx, sample_idx = self.get_dataset_idx_and_sample_idx(idx)
+        return dict(dataset_idx = dataset_idx, data = self.datasets[dataset_idx][sample_idx])
 
     def get_cat_ids(self, idx):
-        if idx < 0:
-            if -idx > len(self):
-                raise ValueError(
-                    'absolute value of index should not exceed dataset length')
-            idx = len(self) + idx
-        dataset_idx = bisect.bisect_right(self.cumulative_sizes, idx)
-        if dataset_idx == 0:
-            sample_idx = idx
-        else:
-            sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
+        dataset_idx, sample_idx = self.get_dataset_idx_and_sample_idx(idx)
         return self.datasets[dataset_idx].get_cat_ids(sample_idx)
     
     def get_ann_info(self, idx):
@@ -54,16 +71,7 @@ class ConcatMultiTypeDataset(_ConcatDataset):
             dict: Annotation info of specified index.
         """
 
-        if idx < 0:
-            if -idx > len(self):
-                raise ValueError(
-                    'absolute value of index should not exceed dataset length')
-            idx = len(self) + idx
-        dataset_idx = bisect.bisect_right(self.cumulative_sizes, idx)
-        if dataset_idx == 0:
-            sample_idx = idx
-        else:
-            sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
+        dataset_idx, sample_idx = self.get_dataset_idx_and_sample_idx(idx)
         return self.datasets[dataset_idx].get_ann_info(sample_idx)
     
     def evaluate(self, results, *args, indices=None, logger=None, **kwargs):
@@ -116,29 +124,6 @@ class ConcatMultiTypeDataset(_ConcatDataset):
                 total_eval_results.update({f'{dataset_idx}_{k}': v})
 
         return total_eval_results
-
-    def get_dataset_idx_and_sample_idx(self, indice):
-        """Return dataset and sample index when given an indice of
-        ConcatDataset.
-
-        Args:
-            indice (int): indice of sample in ConcatDataset
-
-        Returns:
-            int: the index of sub dataset the sample belong to
-            int: the index of sample in its corresponding subset
-        """
-        if indice < 0:
-            if -indice > len(self):
-                raise ValueError(
-                    'absolute value of index should not exceed dataset length')
-            indice = len(self) + indice
-        dataset_idx = bisect.bisect_right(self.cumulative_sizes, indice)
-        if dataset_idx == 0:
-            sample_idx = indice
-        else:
-            sample_idx = indice - self.cumulative_sizes[dataset_idx - 1]
-        return dataset_idx, sample_idx
 
     def format_results(self, results, imgfile_prefix, indices=None, **kwargs):
         """format result for every sample of ConcatDataset."""
