@@ -60,6 +60,9 @@ def build_dataset(cfg, default_args=None):
 
     return dataset
 
+def collate_MultiTypeDataset(batch, samples_per_gpu):
+    data = [item[1] for item in batch]
+    return (batch[0][0], collate(data, samples_per_gpu))
 
 def build_dataloader(dataset,
                      samples_per_gpu,
@@ -171,7 +174,7 @@ def build_dataloader(dataset,
             sampler=sampler,
             num_workers=num_workers,
             batch_sampler=batch_sampler,
-            collate_fn=partial(collate, samples_per_gpu=samples_per_gpu),
+            collate_fn=partial(collate_MultiTypeDataset, samples_per_gpu=samples_per_gpu),
             pin_memory=pin_memory,
             shuffle=shuffle,
             worker_init_fn=init_fn,
