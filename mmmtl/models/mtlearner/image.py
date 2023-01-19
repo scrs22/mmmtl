@@ -132,7 +132,7 @@ class ImageMTLearner(BaseMTLearner):
         #     x = self.head.pre_logits(x)
         return x
 
-    def forward_train(self, img, data, task_bh, **kwargs):
+    def forward_train(self, img, data, dataset_idx, **kwargs):
         """Forward computation during training.
 
         Args:
@@ -151,7 +151,7 @@ class ImageMTLearner(BaseMTLearner):
 
         # x = self.extract_feat(img)
 
-        loss = self.mt_models[task_bh].forward_train(img, data)
+        loss = self.mt_models[dataset_idx].forward_train(img, data)
 
         # add all loss not used as 0
 
