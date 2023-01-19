@@ -61,8 +61,9 @@ def build_dataset(cfg, default_args=None):
     return dataset
 
 def collate_MultiTypeDataset(batch, samples_per_gpu):
-    data = [item[1] for item in batch]
-    return (batch[0][0], collate(data, samples_per_gpu))
+    data = collate([item[1] for item in batch], samples_per_gpu)
+    data["dataset_idx"] = batch[0][0]
+    return data
 
 def build_dataloader(dataset,
                      samples_per_gpu,

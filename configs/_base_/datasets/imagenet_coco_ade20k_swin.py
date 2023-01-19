@@ -221,4 +221,3 @@ data = dict(
     test_dataloader=cat_dataloader
 )
 
-evaluation = dict(interval=1)#, metric='accuracy')
