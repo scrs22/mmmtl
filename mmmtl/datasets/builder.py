@@ -27,7 +27,10 @@ if platform.system() != 'Windows':
 DATASETS = Registry('dataset')
 PIPELINES = Registry('pipeline')
 SAMPLERS = Registry('sampler')
-
+import mmdetection.mmdet.datasets as detdataset
+import mmsegmentation.mmseg.datasets as segdataset
+DET_DATASETS = detdataset.DATASETS
+SEG_DATASETS = segdataset.DATASETS
 
 def build_dataset(cfg, default_args=None):
     from .dataset_wrappers import (ClassBalancedDataset, ConcatDataset,
@@ -56,7 +59,12 @@ def build_dataset(cfg, default_args=None):
         cp_cfg.pop('type')
         dataset = KFoldDataset(**cp_cfg)
     else:
-        dataset = build_from_cfg(cfg, DATASETS, default_args)
+        if DATASETS.__contains__(cfg['type']):
+            dataset = build_from_cfg(cfg, DATASETS, default_args)
+        elif DET_DATASETS.__contains__(cfg['type']):
+            dataset = build_from_cfg(cfg, DET_DATASETS, default_args)
+        else:
+            dataset = build_from_cfg(cfg, SEG_DATASETS, default_args)
 
     return dataset
 
