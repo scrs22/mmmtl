@@ -2,6 +2,7 @@ _base_ = ['./pipelines/rand_aug.py']
 
 # dataset settings
 cls_dataset_type = 'ImageNet'
+cls_data_root = '/nobackup/users/zitian/multi_data/ILSVRC2012/'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 
@@ -73,7 +74,7 @@ cls_test_pipeline = [
 
 # dataset settings
 det_dataset_type = 'CocoDataset'
-det_data_root = 'data/coco/'
+det_data_root = '/nobackup/users/zitian/multi_data/COCO/'
 det_train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations', with_bbox=True),
@@ -122,7 +123,7 @@ det_test_pipeline = [
 
 # dataset settings
 seg_dataset_type = 'ADE20KDataset'
-seg_data_root = 'data/ADEChallengeData2016'
+seg_data_root = '/nobackup/users/zitian/multi_data/ADEChallengeData2016/'
 crop_size = (512, 512)
 seg_train_pipeline = [
     dict(type='LoadImageFromFile'),
@@ -187,13 +188,14 @@ cat_dataloader = dict(samples_per_gpu=8, workers_per_gpu=2,
     )
 )
 
+dataset_type = "ConcatMultiTypeDataset"
 data = dict(
     # samples_per_gpu=4,
     # workers_per_gpu=4,
     train=dict(
         type='ConcatMultiTypeDataset',
         datasets = [
-            dict(type=cls_dataset_type,data_prefix='data/imagenet/train',pipeline=cls_train_pipeline),
+            dict(type=cls_dataset_type,data_prefix=cls_data_root + 'train/',pipeline=cls_train_pipeline),
             dict(type=det_dataset_type,ann_file=det_data_root + 'annotations/instances_train2017.json',img_prefix=det_data_root + 'train2017/',pipeline=det_train_pipeline),
             dict(type=seg_dataset_type,data_root=seg_data_root,img_dir='images/training',ann_dir='annotations/training',pipeline=seg_train_pipeline),
         ]
@@ -202,7 +204,7 @@ data = dict(
     val=dict(
         type='ConcatMultiTypeDataset',
         datasets = [
-            dict(type=cls_dataset_type,data_prefix='data/imagenet/val',pipeline=cls_test_pipeline),
+            dict(type=cls_dataset_type,data_prefix=cls_data_root + 'val/',pipeline=cls_test_pipeline),
             dict(type=det_dataset_type,ann_file=det_data_root + 'annotations/instances_val2017.json',img_prefix=det_data_root + 'val2017/',pipeline=det_test_pipeline),
             dict(type=seg_dataset_type,data_root=seg_data_root,img_dir='images/validation',ann_dir='annotations/validation',pipeline=seg_test_pipeline),
         ]
@@ -211,7 +213,7 @@ data = dict(
     test=dict(
         type='ConcatMultiTypeDataset',
         datasets = [
-            dict(type=cls_dataset_type,data_prefix='data/imagenet/val',pipeline=cls_test_pipeline),
+            dict(type=cls_dataset_type,data_prefix=cls_data_root + 'val/',pipeline=cls_test_pipeline),
             dict(type=det_dataset_type,ann_file=det_data_root + 'annotations/instances_val2017.json',img_prefix=det_data_root + 'val2017/',pipeline=det_test_pipeline),
             dict(type=seg_dataset_type,data_root=seg_data_root,img_dir='images/validation',ann_dir='annotations/validation',pipeline=seg_test_pipeline),
         ]
@@ -219,3 +221,4 @@ data = dict(
     test_dataloader=cat_dataloader
 )
 
+evaluation = dict(interval=1)#, metric='accuracy')

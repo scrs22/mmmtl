@@ -1,7 +1,8 @@
 _base_ = [
     # '../_base_/models/retinanet_r50_fpn.py',
     '../_base_/datasets/imagenet_coco_ade20k_swin.py',
-    # '../_base_/schedules/schedule_1x.py', '../_base_/default_runtime.py'
+    # '../_base_/schedules/schedule_1x.py', 
+    '../_base_/default_runtime.py'
 ]
 # pretrained = 'https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_tiny_patch4_window7_224.pth'  # noqa
 
@@ -141,7 +142,18 @@ model = dict(
         ]
 )
 
+# evaluation = 
 
+# optimizer
+optimizer = dict(type='SGD', lr=0.1, momentum=0.9, weight_decay=0.0001)
+optimizer_config = dict(grad_clip=None)
+# learning policy
+lr_config = dict(policy='step', step=[30, 60, 90])
+runner = dict(type='EpochBasedRunner', max_epochs=100)
+
+work_dir = '/nobackup/users/zitian/work_dirs/multi_learning'
+
+"""
 model = dict(
     backbone=dict(
         # init_cfg=dict(type='Pretrained', checkpoint=None),
@@ -208,7 +220,7 @@ model = dict(
     # model training and testing settings
     train_cfg=dict(),
     test_cfg=dict(mode='whole'))
-
+"""
 
 
 # model = dict(
