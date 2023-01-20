@@ -149,8 +149,8 @@ class Distributed_Weighted_BatchSampler(_DistributedSampler):
 # import torch
 # from torch.utils.data import DistributedSampler as _DistributedSampler
 
-# from mmcls.core.utils import sync_random_seed
-# from mmcls.datasets import SAMPLERS
+# from mmmtl.core.utils import sync_random_seed
+# from mmmtl.datasets import SAMPLERS
 
 # from .distributed_sampler import DistributedSampler
 

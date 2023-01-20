@@ -1,7 +1,11 @@
 _base_ = [
     # '../_base_/models/retinanet_r50_fpn.py',
     '../_base_/datasets/imagenet_coco_ade20k_swin.py',
+<<<<<<< HEAD
     '../_base_/schedules/imgnet_ade20k_coco_SGD.py', 
+=======
+    # '../_base_/schedules/schedule_1x.py', 
+>>>>>>> d38fb73659c9ab403163336e924282c4d43e4527
     '../_base_/default_runtime.py'
 ]
 
@@ -154,6 +158,7 @@ model = dict(
         ]
 )
 
+evaluation = dict(interval=1)#, metric='accuracy')
 
 <<<<<<< HEAD
 # model = dict(

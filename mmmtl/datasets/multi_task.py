@@ -81,7 +81,7 @@ class MultiTaskDataset:
 
     .. code:: python
 
-        >>> from mmcls.datasets import build_dataset
+        >>> from mmmtl.datasets import build_dataset
         >>> train_cfg = dict(
         ...     type="MultiTaskDataset",
         ...     ann_file="annotation/train.json",
@@ -109,7 +109,7 @@ class MultiTaskDataset:
 
     .. code:: python
 
-        >>> from mmcls.datasets import build_dataset
+        >>> from mmmtl.datasets import build_dataset
         >>> train_cfg = dict(
         ...     type="MultiTaskDataset",
         ...     ann_file="train.json",

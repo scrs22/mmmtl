@@ -1,5 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from ..builder import build_mtlearner, build_backbone, build_head, build_neck
+from ..builder import build_mtlearner, build_backbone, build_head, build_neck, MTLEARNERS
 from ..heads import MultiLabelClsHead
 from ..utils.augment import Augments
 from .base import BaseMTLearner
@@ -70,7 +70,7 @@ class ImageMTLearner(BaseMTLearner):
 
             >>> import torch
             >>> from mmcv import Config
-            >>> from mmcls.models import build_classifier
+            >>> from mmmtl.models import build_classifier
             >>>
             >>> cfg = Config.fromfile('configs/resnet/resnet18_8xb32_in1k.py').model
             >>> cfg.backbone.out_indices = (0, 1, 2, 3)  # Output multi-scale feature maps
@@ -87,7 +87,7 @@ class ImageMTLearner(BaseMTLearner):
 
             >>> import torch
             >>> from mmcv import Config
-            >>> from mmcls.models import build_classifier
+            >>> from mmmtl.models import build_classifier
             >>>
             >>> cfg = Config.fromfile('configs/resnet/resnet18_8xb32_in1k.py').model
             >>> cfg.backbone.out_indices = (0, 1, 2, 3)  # Output multi-scale feature maps
@@ -105,7 +105,7 @@ class ImageMTLearner(BaseMTLearner):
 
             >>> import torch
             >>> from mmcv import Config
-            >>> from mmcls.models import build_classifier
+            >>> from mmmtl.models import build_classifier
             >>>
             >>> cfg = Config.fromfile('configs/vision_transformer/vit-base-p16_pt-64xb64_in1k-224.py').model
             >>> model = build_classifier(cfg)
@@ -132,7 +132,7 @@ class ImageMTLearner(BaseMTLearner):
         #     x = self.head.pre_logits(x)
         return x
 
-    def forward_train(self, img, data, task_bh, **kwargs):
+    def forward_train(self, imgs, img_metas, dataset_idx, **kwargs):
         """Forward computation during training.
 
         Args:
@@ -151,7 +151,20 @@ class ImageMTLearner(BaseMTLearner):
 
         # x = self.extract_feat(img)
 
-        loss = self.mt_models[task_bh].forward_train(img, data)
+        loss = self.mt_models[dataset_idx].forward_train(imgs, img_metas)
+
+        # add all loss not used as 0
+
+        losses = dict()
+        # loss = self.head.forward_train(x, gt_label)
+
+        losses.update(loss)
+
+        return losses
+
+    def forward_test(self, imgs, img_metas, dataset_idx, **kwargs):
+
+        loss = self.mt_models[dataset_idx].forward_test(imgs, img_metas)
 
         # add all loss not used as 0
 

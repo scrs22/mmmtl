@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from mmcls.models.utils.augment.builder import AUGMENT
+from mmmtl.models.utils.augment.builder import AUGMENT
 from .cutmix import BatchCutMixLayer
 from .utils import one_hot_encoding
 

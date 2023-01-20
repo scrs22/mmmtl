@@ -27,7 +27,10 @@ if platform.system() != 'Windows':
 DATASETS = Registry('dataset')
 PIPELINES = Registry('pipeline')
 SAMPLERS = Registry('sampler')
-
+import mmdetection.mmdet.datasets as detdataset
+import mmsegmentation.mmseg.datasets as segdataset
+DET_DATASETS = detdataset.DATASETS
+SEG_DATASETS = segdataset.DATASETS
 
 def build_dataset(cfg, default_args=None):
     from .dataset_wrappers import (ClassBalancedDataset, ConcatDataset,
@@ -56,10 +59,19 @@ def build_dataset(cfg, default_args=None):
         cp_cfg.pop('type')
         dataset = KFoldDataset(**cp_cfg)
     else:
-        dataset = build_from_cfg(cfg, DATASETS, default_args)
+        if DATASETS.__contains__(cfg['type']):
+            dataset = build_from_cfg(cfg, DATASETS, default_args)
+        elif DET_DATASETS.__contains__(cfg['type']):
+            dataset = build_from_cfg(cfg, DET_DATASETS, default_args)
+        else:
+            dataset = build_from_cfg(cfg, SEG_DATASETS, default_args)
 
     return dataset
 
+def collate_MultiTypeDataset(batch, samples_per_gpu):
+    data = collate([item[1] for item in batch], samples_per_gpu)
+    data["dataset_idx"] = batch[0][0]
+    return data
 
 def build_dataloader(dataset,
                      samples_per_gpu,
@@ -171,7 +183,7 @@ def build_dataloader(dataset,
             sampler=sampler,
             num_workers=num_workers,
             batch_sampler=batch_sampler,
-            collate_fn=partial(collate, samples_per_gpu=samples_per_gpu),
+            collate_fn=partial(collate_MultiTypeDataset, samples_per_gpu=samples_per_gpu),
             pin_memory=pin_memory,
             shuffle=shuffle,
             worker_init_fn=init_fn,
