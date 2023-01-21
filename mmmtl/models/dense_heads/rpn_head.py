@@ -158,8 +158,8 @@ class RPNHead(AnchorHead):
             else:
                 rpn_cls_score = rpn_cls_score.reshape(-1, 2)
                 # We set FG labels to [0, num_class-1] and BG label to
-                # num_class in RPN head since mmdet v2.5, which is unified to
-                # be consistent with other head since mmdet v2.0. In mmdet v2.0
+                # num_class in RPN head since mmmtl v2.5, which is unified to
+                # be consistent with other head since mmmtl v2.0. In mmmtl v2.0
                 # to v2.4 we keep BG label as 0 and FG label as 1 in rpn head.
                 scores = rpn_cls_score.softmax(dim=1)[:, 0]
             rpn_bbox_pred = rpn_bbox_pred.permute(1, 2, 0).reshape(-1, 4)
@@ -251,7 +251,7 @@ class RPNHead(AnchorHead):
         batch_bboxes, batch_scores = super(RPNHead, self).onnx_export(
             cls_scores, bbox_preds, img_metas=img_metas, with_nms=False)
         # Use ONNX::NonMaxSuppression in deployment
-        from mmdet.core.export import add_dummy_nms_for_onnx
+        from mmmtl.core.export import add_dummy_nms_for_onnx
         cfg = copy.deepcopy(self.test_cfg)
         score_threshold = cfg.nms.get('score_thr', 0.0)
         nms_pre = cfg.get('deploy_nms_pre', -1)

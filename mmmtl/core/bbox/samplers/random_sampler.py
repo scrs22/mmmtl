@@ -24,7 +24,7 @@ class RandomSampler(BaseSampler):
                  neg_pos_ub=-1,
                  add_gt_as_proposals=True,
                  **kwargs):
-        from mmdet.core.bbox import demodata
+        from mmmtl.core.bbox import demodata
         super(RandomSampler, self).__init__(num, pos_fraction, neg_pos_ub,
                                             add_gt_as_proposals)
         self.rng = demodata.ensure_rng(kwargs.get('rng', None))
@@ -54,7 +54,7 @@ class RandomSampler(BaseSampler):
             gallery = torch.tensor(gallery, dtype=torch.long, device=device)
         # This is a temporary fix. We can revert the following code
         # when PyTorch fixes the abnormal return of torch.randperm.
-        # See: https://github.com/open-mmlab/mmdetection/pull/5014
+        # See: https://github.com/open-mmlab/mmmtlection/pull/5014
         perm = torch.randperm(gallery.numel())[:num].to(device=gallery.device)
         rand_inds = gallery[perm]
         if not is_tensor:

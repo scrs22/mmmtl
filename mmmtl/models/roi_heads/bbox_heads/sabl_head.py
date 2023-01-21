@@ -6,9 +6,9 @@ import torch.nn.functional as F
 from mmcv.cnn import ConvModule
 from mmcv.runner import BaseModule, force_fp32
 
-from mmdet.core import build_bbox_coder, multi_apply, multiclass_nms
-from mmdet.models.builder import HEADS, build_loss
-from mmdet.models.losses import accuracy
+from mmmtl.core import build_bbox_coder, multi_apply, multiclass_nms
+from mmmtl.models.builder import HEADS, build_loss
+from mmmtl.models.losses import accuracy
 
 
 @HEADS.register_module()

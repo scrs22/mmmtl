@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from mmdet.core import (bbox2result, bbox2roi, bbox_mapping, merge_aug_bboxes,
+from mmmtl.core import (bbox2result, bbox2roi, bbox_mapping, merge_aug_bboxes,
                         merge_aug_masks, multiclass_nms)
 from ..builder import HEADS, build_head, build_roi_extractor
 from ..utils.brick_wrappers import adaptive_avg_pool2d
@@ -219,7 +219,7 @@ class SCNetRoIHead(CascadeRoIHead):
                 has: 'img_shape', 'scale_factor', 'flip', and may also contain
                 'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
                 For details on the values of these keys see
-                `mmdet/datasets/pipelines/formatting.py:Collect`.
+                `mmmtl/datasets/pipelines/formatting.py:Collect`.
             proposal_list (list[Tensors]): list of region proposals.
             gt_bboxes (list[Tensor]): Ground truth bboxes for each image with
                 shape (num_gts, 4) in [tl_x, tl_y, br_x, br_y] format.

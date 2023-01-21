@@ -1,6 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from mmdet.models.builder import HEADS
-from mmdet.models.utils import ResLayer, SimplifiedBasicBlock
+from mmmtl.models.builder import HEADS
+from mmmtl.models.utils import ResLayer, SimplifiedBasicBlock
 from .fused_semantic_head import FusedSemanticHead
 
 

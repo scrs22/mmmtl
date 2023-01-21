@@ -15,7 +15,7 @@ class InstanceData(GeneralData):
     https://github.com/facebookresearch/detectron2/blob/master/detectron2/structures/instances.py # noqa E501
 
     Examples:
-        >>> from mmdet.core import InstanceData
+        >>> from mmmtl.core import InstanceData
         >>> import numpy as np
         >>> img_meta = dict(img_shape=(800, 1196, 3), pad_shape=(800, 1216, 3))
         >>> results = InstanceData(img_meta)

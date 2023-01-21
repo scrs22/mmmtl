@@ -129,7 +129,7 @@ class GARPNHead(GuidedAnchorHead):
             else:
                 rpn_cls_score = rpn_cls_score.reshape(-1, 2)
                 # remind that we set FG labels to [0, num_class-1]
-                # since mmdet v2.0
+                # since mmmtl v2.0
                 # BG cat_id: num_class
                 scores = rpn_cls_score.softmax(dim=1)[:, :-1]
             # filter scores, bbox_pred w.r.t. mask.

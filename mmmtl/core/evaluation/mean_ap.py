@@ -154,7 +154,7 @@ def tpfp_imagenet(det_bboxes,
         area_ranges (list[tuple] | None): Range of bbox areas to be evaluated,
             in the format [(min1, max1), (min2, max2), ...]. Default: None.
         use_legacy_coordinate (bool): Whether to use coordinate system in
-            mmdet v1.x. which means width, height should be
+            mmmtl v1.x. which means width, height should be
             calculated as 'x2 - x1 + 1` and 'y2 - y1 + 1' respectively.
             Default: False.
 
@@ -263,7 +263,7 @@ def tpfp_default(det_bboxes,
             evaluated, in the format [(min1, max1), (min2, max2), ...].
             Default: None.
         use_legacy_coordinate (bool): Whether to use coordinate system in
-            mmdet v1.x. which means width, height should be
+            mmmtl v1.x. which means width, height should be
             calculated as 'x2 - x1 + 1` and 'y2 - y1 + 1' respectively.
             Default: False.
 
@@ -369,7 +369,7 @@ def tpfp_openimages(det_bboxes,
             evaluated, in the format [(min1, max1), (min2, max2), ...].
             Default: None.
         use_legacy_coordinate (bool): Whether to use coordinate system in
-            mmdet v1.x. which means width, height should be
+            mmmtl v1.x. which means width, height should be
             calculated as 'x2 - x1 + 1` and 'y2 - y1 + 1' respectively.
             Default: False.
         gt_bboxes_group_of (ndarray): GT group_of of this image, of shape
@@ -644,7 +644,7 @@ def eval_map(det_results,
         nproc (int): Processes used for computing TP and FP.
             Default: 4.
         use_legacy_coordinate (bool): Whether to use coordinate system in
-            mmdet v1.x. which means width, height should be
+            mmmtl v1.x. which means width, height should be
             calculated as 'x2 - x1 + 1` and 'y2 - y1 + 1' respectively.
             Default: False.
         use_group_of (bool): Whether to use group of when calculate TP and FP,

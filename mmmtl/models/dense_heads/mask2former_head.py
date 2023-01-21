@@ -10,8 +10,8 @@ from mmcv.cnn.bricks.transformer import (build_positional_encoding,
 from mmcv.ops import point_sample
 from mmcv.runner import ModuleList
 
-from mmdet.core import build_assigner, build_sampler, reduce_mean
-from mmdet.models.utils import get_uncertain_point_coords_with_randomness
+from mmmtl.core import build_assigner, build_sampler, reduce_mean
+from mmmtl.models.utils import get_uncertain_point_coords_with_randomness
 from ..builder import HEADS, build_loss
 from .anchor_free_head import AnchorFreeHead
 from .maskformer_head import MaskFormerHead

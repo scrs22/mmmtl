@@ -10,8 +10,8 @@ try:
 except ModuleNotFoundError:
     point_sample = None
 
-from mmseg.models.builder import HEADS
-from mmseg.ops import resize
+from mmmtl.models.builder import HEADS
+from mmmtl.ops import resize
 from ..losses import accuracy
 from .cascade_decode_head import BaseCascadeDecodeHead
 
@@ -180,7 +180,7 @@ class PointHead(BaseCascadeDecodeHead):
                 has: 'img_shape', 'scale_factor', 'flip', and may also contain
                 'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
                 For details on the values of these keys see
-                `mmseg/datasets/pipelines/formatting.py:Collect`.
+                `mmmtl/datasets/pipelines/formatting.py:Collect`.
             gt_semantic_seg (Tensor): Semantic segmentation masks
                 used if the architecture supports semantic segmentation task.
             train_cfg (dict): The training config.
@@ -218,7 +218,7 @@ class PointHead(BaseCascadeDecodeHead):
                 has: 'img_shape', 'scale_factor', 'flip', and may also contain
                 'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
                 For details on the values of these keys see
-                `mmseg/datasets/pipelines/formatting.py:Collect`.
+                `mmmtl/datasets/pipelines/formatting.py:Collect`.
             test_cfg (dict): The testing config.
 
         Returns:

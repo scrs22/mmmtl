@@ -34,7 +34,7 @@ def init_random_seed(seed=None, device=None):
         device = auto_select_device()
     # Make sure all ranks share the same random seed to prevent
     # some potential bugs. Please refer to
-    # https://github.com/open-mmlab/mmdetection/issues/6339
+    # https://github.com/open-mmlab/mmmtlection/issues/6339
     rank, world_size = get_dist_info()
     seed = np.random.randint(2**31)
     if world_size == 1:

@@ -1,5 +1,5 @@
 # Modified from
-# https://github.com/NVlabs/SegFormer/blob/master/mmseg/models/decode_heads/segformer_head.py
+# https://github.com/NVlabs/SegFormer/blob/master/mmmtl/models/decode_heads/segformer_head.py
 #
 # This work is licensed under the NVIDIA Source Code License.
 #
@@ -81,9 +81,9 @@ import torch
 import torch.nn as nn
 from mmcv.cnn import ConvModule
 
-from mmseg.models.builder import HEADS
-from mmseg.models.decode_heads.decode_head import BaseDecodeHead
-from mmseg.ops import resize
+from mmmtl.models.builder import HEADS
+from mmmtl.models.decode_heads.decode_head import BaseDecodeHead
+from mmmtl.ops import resize
 
 
 @HEADS.register_module()

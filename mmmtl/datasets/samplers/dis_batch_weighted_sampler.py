@@ -7,7 +7,7 @@ import torch
 from torch.utils.data import DistributedSampler as _DistributedSampler
 
 from mmmtl.core.utils import sync_random_seed
-from mmdet.utils import get_device
+from mmmtl.utils import get_device
 from mmmtl.datasets import SAMPLERS
 
 import math

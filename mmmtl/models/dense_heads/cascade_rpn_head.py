@@ -9,9 +9,9 @@ from mmcv import ConfigDict
 from mmcv.ops import DeformConv2d, batched_nms
 from mmcv.runner import BaseModule, ModuleList
 
-from mmdet.core import (RegionAssigner, build_assigner, build_sampler,
+from mmmtl.core import (RegionAssigner, build_assigner, build_sampler,
                         images_to_levels, multi_apply)
-from mmdet.core.utils import select_single_mlvl
+from mmmtl.core.utils import select_single_mlvl
 from ..builder import HEADS, build_head
 from .base_dense_head import BaseDenseHead
 from .rpn_head import RPNHead
@@ -598,8 +598,8 @@ class StageCascadeRPNHead(RPNHead):
             else:
                 rpn_cls_score = rpn_cls_score.reshape(-1, 2)
                 # We set FG labels to [0, num_class-1] and BG label to
-                # num_class in RPN head since mmdet v2.5, which is unified to
-                # be consistent with other head since mmdet v2.0. In mmdet v2.0
+                # num_class in RPN head since mmmtl v2.5, which is unified to
+                # be consistent with other head since mmmtl v2.0. In mmmtl v2.0
                 # to v2.4 we keep BG label as 0 and FG label as 1 in rpn head.
                 scores = rpn_cls_score.softmax(dim=1)[:, 0]
             rpn_bbox_pred = rpn_bbox_pred.permute(1, 2, 0).reshape(-1, 4)

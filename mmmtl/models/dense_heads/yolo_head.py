@@ -11,7 +11,7 @@ from mmcv.cnn import (ConvModule, bias_init_with_prob, constant_init, is_norm,
                       normal_init)
 from mmcv.runner import force_fp32
 
-from mmdet.core import (build_assigner, build_bbox_coder,
+from mmmtl.core import (build_assigner, build_bbox_coder,
                         build_prior_generator, build_sampler, images_to_levels,
                         multi_apply, multiclass_nms)
 from ..builder import HEADS, build_loss
@@ -558,7 +558,7 @@ class YOLOV3Head(BaseDenseHead, BBoxTestMixin):
                 batch_size, -1, self.num_classes)  # Cls pred one-hot.
 
             # Get top-k prediction
-            from mmdet.core.export import get_k_for_topk
+            from mmmtl.core.export import get_k_for_topk
             nms_pre = get_k_for_topk(nms_pre_tensor, bbox_pred.shape[1])
             if nms_pre > 0:
                 _, topk_inds = conf_pred.topk(nms_pre)
@@ -587,7 +587,7 @@ class YOLOV3Head(BaseDenseHead, BBoxTestMixin):
         batch_mlvl_conf_scores = torch.cat(multi_lvl_conf_scores, dim=1)
 
         # Replace multiclass_nms with ONNX::NonMaxSuppression in deployment
-        from mmdet.core.export import add_dummy_nms_for_onnx
+        from mmmtl.core.export import add_dummy_nms_for_onnx
         conf_thr = cfg.get('conf_thr', -1)
         score_thr = cfg.get('score_thr', -1)
         # follow original pipeline of YOLOv3

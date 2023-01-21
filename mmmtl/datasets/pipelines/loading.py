@@ -49,7 +49,7 @@ class LoadImageFromFile(object):
         """Call functions to load image and get image meta information.
 
         Args:
-            results (dict): Result dict from :obj:`mmseg.CustomDataset`.
+            results (dict): Result dict from :obj:`mmmtl.CustomDataset`.
 
         Returns:
             dict: The dict contains loaded image and meta information.
@@ -159,7 +159,7 @@ class LoadMultiChannelImageFromFiles:
         information.
 
         Args:
-            results (dict): Result dict from :obj:`mmdet.CustomDataset`.
+            results (dict): Result dict from :obj:`mmmtl.CustomDataset`.
 
         Returns:
             dict: The dict contains loaded images and meta information.
@@ -235,7 +235,7 @@ class LoadAnnotationsSeg(object):
         """Call function to load multiple types annotations.
 
         Args:
-            results (dict): Result dict from :obj:`mmseg.CustomDataset`.
+            results (dict): Result dict from :obj:`mmmtl.CustomDataset`.
 
         Returns:
             dict: The dict contains loaded semantic segmentation annotations.
@@ -257,7 +257,7 @@ class LoadAnnotationsSeg(object):
         if results.get('label_map', None) is not None:
             # Add deep copy to solve bug of repeatedly
             # replace `gt_semantic_seg`, which is reported in
-            # https://github.com/open-mmlab/mmsegmentation/pull/1445/
+            # https://github.com/open-mmlab/mmmtlmentation/pull/1445/
             gt_semantic_seg_copy = gt_semantic_seg.copy()
             for old_id, new_id in results['label_map'].items():
                 gt_semantic_seg[gt_semantic_seg_copy == old_id] = new_id
@@ -321,7 +321,7 @@ class LoadAnnotationsDet:
         """Private function to load bounding box annotations.
 
         Args:
-            results (dict): Result dict from :obj:`mmdet.CustomDataset`.
+            results (dict): Result dict from :obj:`mmmtl.CustomDataset`.
 
         Returns:
             dict: The dict contains loaded bounding box annotations.
@@ -353,7 +353,7 @@ class LoadAnnotationsDet:
         """Private function to load label annotations.
 
         Args:
-            results (dict): Result dict from :obj:`mmdet.CustomDataset`.
+            results (dict): Result dict from :obj:`mmmtl.CustomDataset`.
 
         Returns:
             dict: The dict contains loaded label annotations.
@@ -410,7 +410,7 @@ class LoadAnnotationsDet:
         """Private function to load mask annotations.
 
         Args:
-            results (dict): Result dict from :obj:`mmdet.CustomDataset`.
+            results (dict): Result dict from :obj:`mmmtl.CustomDataset`.
 
         Returns:
             dict: The dict contains loaded mask annotations.
@@ -456,7 +456,7 @@ class LoadAnnotationsDet:
         """Call function to load multiple types annotations.
 
         Args:
-            results (dict): Result dict from :obj:`mmdet.CustomDataset`.
+            results (dict): Result dict from :obj:`mmmtl.CustomDataset`.
 
         Returns:
             dict: The dict contains loaded bounding box, label, mask and
@@ -533,7 +533,7 @@ class LoadPanopticAnnotations(LoadAnnotationsDet):
         `num_things + num_stuff - 1`, 255 means the ignored label (`VOID`).
 
         Args:
-            results (dict): Result dict from :obj:`mmdet.CustomDataset`.
+            results (dict): Result dict from :obj:`mmmtl.CustomDataset`.
 
         Returns:
             dict: The dict contains loaded mask and semantic segmentation
@@ -576,7 +576,7 @@ class LoadPanopticAnnotations(LoadAnnotationsDet):
         """Call function to load multiple types panoptic annotations.
 
         Args:
-            results (dict): Result dict from :obj:`mmdet.CustomDataset`.
+            results (dict): Result dict from :obj:`mmmtl.CustomDataset`.
 
         Returns:
             dict: The dict contains loaded bounding box, label, mask and
@@ -615,7 +615,7 @@ class LoadProposals:
         """Call function to load proposals from file.
 
         Args:
-            results (dict): Result dict from :obj:`mmdet.CustomDataset`.
+            results (dict): Result dict from :obj:`mmmtl.CustomDataset`.
 
         Returns:
             dict: The dict contains loaded proposal annotations.

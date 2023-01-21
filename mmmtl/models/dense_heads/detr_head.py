@@ -6,10 +6,10 @@ from mmcv.cnn import Conv2d, Linear, build_activation_layer
 from mmcv.cnn.bricks.transformer import FFN, build_positional_encoding
 from mmcv.runner import force_fp32
 
-from mmdet.core import (bbox_cxcywh_to_xyxy, bbox_xyxy_to_cxcywh,
+from mmmtl.core import (bbox_cxcywh_to_xyxy, bbox_xyxy_to_cxcywh,
                         build_assigner, build_sampler, multi_apply,
                         reduce_mean)
-from mmdet.models.utils import build_transformer
+from mmmtl.models.utils import build_transformer
 from ..builder import HEADS, build_loss
 from .anchor_free_head import AnchorFreeHead
 
@@ -836,7 +836,7 @@ class DETRHead(AnchorFreeHead):
         det_bboxes = det_bboxes * img_shape_tensor
         # dynamically clip bboxes
         x1, y1, x2, y2 = det_bboxes.split((1, 1, 1, 1), dim=-1)
-        from mmdet.core.export import dynamic_clip_for_onnx
+        from mmmtl.core.export import dynamic_clip_for_onnx
         x1, y1, x2, y2 = dynamic_clip_for_onnx(x1, y1, x2, y2, img_shape)
         det_bboxes = torch.cat([x1, y1, x2, y2], dim=-1)
         det_bboxes = torch.cat((det_bboxes, scores.unsqueeze(-1)), -1)

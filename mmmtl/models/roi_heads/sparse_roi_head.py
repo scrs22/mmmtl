@@ -2,8 +2,8 @@
 import numpy as np
 import torch
 
-from mmdet.core import bbox2result, bbox2roi, bbox_xyxy_to_cxcywh
-from mmdet.core.bbox.samplers import PseudoSampler
+from mmmtl.core import bbox2result, bbox2roi, bbox_xyxy_to_cxcywh
+from mmmtl.core.bbox.samplers import PseudoSampler
 from ..builder import HEADS
 from .cascade_roi_head import CascadeRoIHead
 
@@ -205,7 +205,7 @@ class SparseRoIHead(CascadeRoIHead):
                 and may also contain 'filename', 'ori_shape',
                 'pad_shape', and 'img_norm_cfg'. For details on the
                 values of these keys see
-                `mmdet/datasets/pipelines/formatting.py:Collect`.
+                `mmmtl/datasets/pipelines/formatting.py:Collect`.
             gt_bboxes (list[Tensor]): Ground truth bboxes for each image with
                 shape (num_gts, 4) in [tl_x, tl_y, br_x, br_y] format.
             gt_labels (list[Tensor]): class indices corresponding to each box

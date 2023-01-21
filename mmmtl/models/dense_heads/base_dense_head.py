@@ -6,7 +6,7 @@ from mmcv.cnn.utils.weight_init import constant_init
 from mmcv.ops import batched_nms
 from mmcv.runner import BaseModule, force_fp32
 
-from mmdet.core.utils import filter_scores_and_topk, select_single_mlvl
+from mmmtl.core.utils import filter_scores_and_topk, select_single_mlvl
 
 
 class BaseDenseHead(BaseModule, metaclass=ABCMeta):
@@ -190,11 +190,11 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
                 scores = cls_score.sigmoid()
             else:
                 # remind that we set FG labels to [0, num_class-1]
-                # since mmdet v2.0
+                # since mmmtl v2.0
                 # BG cat_id: num_class
                 scores = cls_score.softmax(-1)[:, :-1]
 
-            # After https://github.com/open-mmlab/mmdetection/pull/6268/,
+            # After https://github.com/open-mmlab/mmmtlection/pull/6268/,
             # this operation keeps fewer bboxes under the same `nms_pre`.
             # There is no difference in performance for most models. If you
             # find a slight drop in performance, you can set a larger
@@ -452,7 +452,7 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
                                           1).reshape(batch_size, -1, 4)
             priors = priors.expand(batch_size, -1, priors.size(-1))
             # Get top-k predictions
-            from mmdet.core.export import get_k_for_topk
+            from mmmtl.core.export import get_k_for_topk
             nms_pre = get_k_for_topk(nms_pre_tensor, bbox_pred.shape[1])
             if nms_pre > 0:
 
@@ -466,7 +466,7 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
                     max_scores, _ = nms_pre_score.max(-1)
                 else:
                     # remind that we set FG labels to [0, num_class-1]
-                    # since mmdet v2.0
+                    # since mmmtl v2.0
                     # BG cat_id: num_class
                     max_scores, _ = nms_pre_score[..., :-1].max(-1)
                 _, topk_inds = max_scores.topk(nms_pre)
@@ -504,7 +504,7 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
 
         # Replace multiclass_nms with ONNX::NonMaxSuppression in deployment
 
-        from mmdet.core.export import add_dummy_nms_for_onnx
+        from mmmtl.core.export import add_dummy_nms_for_onnx
 
         if not self.use_sigmoid_cls:
             batch_scores = batch_scores[..., :self.num_classes]

@@ -46,7 +46,7 @@ class BaseMTLearner(BaseModule, metaclass=ABCMeta):
                 has: 'img_shape', 'scale_factor', 'flip', and may also contain
                 'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
                 For details on the values of these keys, see
-                :class:`mmdet.datasets.pipelines.Collect`.
+                :class:`mmmtl.datasets.pipelines.Collect`.
             kwargs (keyword arguments): Specific to concrete implementation.
         """
         # NOTE the batched image size information may be useful, e.g.

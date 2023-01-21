@@ -5,7 +5,7 @@ import torch.nn as nn
 from mmcv.cnn import ConvModule
 from mmcv.runner import BaseModule, auto_fp16
 
-from mmdet.models.builder import NECKS
+from mmmtl.models.builder import NECKS
 
 
 @NECKS.register_module()

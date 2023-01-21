@@ -4,8 +4,8 @@ import copy
 import mmcv
 import numpy as np
 
-from mmdet.core import INSTANCE_OFFSET, bbox2result
-from mmdet.core.visualization import imshow_det_bboxes
+from mmmtl.core import INSTANCE_OFFSET, bbox2result
+from mmmtl.core.visualization import imshow_det_bboxes
 from ..builder import DETECTORS, build_backbone, build_head, build_neck
 from .single_stage import SingleStageDetector
 
@@ -51,7 +51,7 @@ class MaskFormer(SingleStageDetector):
 
     def forward_dummy(self, img, img_metas):
         """Used for computing network flops. See
-        `mmdetection/tools/analysis_tools/get_flops.py`
+        `mmmtlection/tools/analysis_tools/get_flops.py`
 
         Args:
             img (Tensor): of shape (N, C, H, W) encoding input images.
@@ -60,7 +60,7 @@ class MaskFormer(SingleStageDetector):
                 has: 'img_shape', 'scale_factor', 'flip', and may also contain
                 'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
                 For details on the values of these keys see
-                `mmdet/datasets/pipelines/formatting.py:Collect`.
+                `mmmtl/datasets/pipelines/formatting.py:Collect`.
         """
         super(SingleStageDetector, self).forward_train(img, img_metas)
         x = self.extract_feat(img)
@@ -84,7 +84,7 @@ class MaskFormer(SingleStageDetector):
                 has: 'img_shape', 'scale_factor', 'flip', and may also contain
                 'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
                 For details on the values of these keys see
-                `mmdet/datasets/pipelines/formatting.py:Collect`.
+                `mmmtl/datasets/pipelines/formatting.py:Collect`.
             gt_bboxes (list[Tensor]): Ground truth bboxes for each image with
                 shape (num_gts, 4) in [tl_x, tl_y, br_x, br_y] format.
             gt_labels (list[Tensor]): class indices corresponding to each box.

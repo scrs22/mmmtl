@@ -6,10 +6,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from mmcv.cnn import ConvModule
 
-from mmdet.core import InstanceData, mask_matrix_nms, multi_apply
-from mmdet.core.utils import center_of_mass, generate_coordinate
-from mmdet.models.builder import HEADS, build_loss
-from mmdet.utils.misc import floordiv
+from mmmtl.core import InstanceData, mask_matrix_nms, multi_apply
+from mmmtl.core.utils import center_of_mass, generate_coordinate
+from mmmtl.models.builder import HEADS, build_loss
+from mmmtl.utils.misc import floordiv
 from .base_mask_head import BaseMaskHead
 
 

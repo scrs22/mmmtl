@@ -30,7 +30,7 @@ from .point_sample import (get_uncertain_point_coords_with_randomness,
                            get_uncertainty)
 # from .positional_encoding import (LearnedPositionalEncoding)
 from .res_layer import ResLayer, SimplifiedBasicBlock
-# from .se_layer import DyReLU, SELayer
+from .se_layer import DyReLU, SELayer
 # from .transformer import (DetrTransformerDecoder, DetrTransformerDecoderLayer,
 #                           DynamicConv, PatchEmbed, Transformer, nchw_to_nlc,
 #                           nlc_to_nchw)
@@ -44,7 +44,7 @@ from .transformer import PatchEmbed, nchw_to_nlc, nlc_to_nchw
 #     'resize_relative_position_bias_table', 'WindowMSAV2', 'LayerScale'
 # ]
 
-__all__ = [
+det = [
 'channel_shuffle', 'make_divisible', 'InvertedResidual', 'SELayer',
     'to_ntuple', 'to_2tuple', 'to_3tuple', 'to_4tuple', 'PatchEmbed',
     'PatchMerging', 'HybridEmbed', 'Augments', 'ShiftWindowMSA', 'is_tracing',
@@ -58,6 +58,26 @@ __all__ = [
     'SELayer', 'interpolate_as', 'ConvUpsample', 'CSPLayer',
     'adaptive_avg_pool2d', 'AdaptiveAvgPool2d', 'PatchEmbed', 'nchw_to_nlc',
     'nlc_to_nchw', 'pvt_convert', 'sigmoid_geometric_mean',
-    'preprocess_panoptic_gt', #'DyReLU',
+    'preprocess_panoptic_gt', 'DyReLU',
     'get_uncertain_point_coords_with_randomness', 'get_uncertainty'
 ]
+
+
+# Copyright (c) OpenMMLab. All rights reserved.
+from .embed import PatchEmbed
+from .inverted_residual import InvertedResidual, InvertedResidualV3
+from .make_divisible import make_divisible
+from .res_layer import ResLayer
+from .se_layer import SELayer
+from .self_attention_block import SelfAttentionBlock
+from .shape_convert import (nchw2nlc2nchw, nchw_to_nlc, nlc2nchw2nlc,
+                            nlc_to_nchw)
+from .up_conv_block import UpConvBlock
+
+seg = [
+    'ResLayer', 'SelfAttentionBlock', 'make_divisible', 'InvertedResidual',
+    'UpConvBlock', 'InvertedResidualV3', 'SELayer', 'PatchEmbed',
+    'nchw_to_nlc', 'nlc_to_nchw', 'nchw2nlc2nchw', 'nlc2nchw2nlc'
+]
+
+__all__ = list(set(det) | set(seg))

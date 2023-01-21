@@ -3,10 +3,10 @@ import numpy as np
 import torch
 from mmcv.runner import force_fp32
 
-from mmdet.core import multi_apply, multiclass_nms
-from mmdet.core.bbox.iou_calculators import bbox_overlaps
-from mmdet.models import HEADS
-from mmdet.models.dense_heads import ATSSHead
+from mmmtl.core import multi_apply, multiclass_nms
+from mmmtl.core.bbox.iou_calculators import bbox_overlaps
+from mmmtl.models import HEADS
+from mmmtl.models.dense_heads import ATSSHead
 
 EPS = 1e-12
 try:
@@ -668,7 +668,7 @@ class PAAHead(ATSSHead):
             mlvl_bboxes /= mlvl_bboxes.new_tensor(scale_factor)
         mlvl_scores = torch.cat(mlvl_scores)
         # Add a dummy background class to the backend when using sigmoid
-        # remind that we set FG labels to [0, num_class-1] since mmdet v2.0
+        # remind that we set FG labels to [0, num_class-1] since mmmtl v2.0
         # BG cat_id: num_class
         padding = mlvl_scores.new_zeros(mlvl_scores.shape[0], 1)
         mlvl_scores = torch.cat([mlvl_scores, padding], dim=1)

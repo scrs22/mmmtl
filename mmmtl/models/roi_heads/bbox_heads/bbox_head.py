@@ -5,10 +5,10 @@ import torch.nn.functional as F
 from mmcv.runner import BaseModule, auto_fp16, force_fp32
 from torch.nn.modules.utils import _pair
 
-from mmdet.core import build_bbox_coder, multi_apply, multiclass_nms
-from mmdet.models.builder import HEADS, build_loss
-from mmdet.models.losses import accuracy
-from mmdet.models.utils import build_linear_layer
+from mmmtl.core import build_bbox_coder, multi_apply, multiclass_nms
+from mmmtl.models.builder import HEADS, build_loss
+from mmmtl.models.losses import accuracy
+from mmmtl.models.utils import build_linear_layer
 
 
 @HEADS.register_module()
@@ -398,7 +398,7 @@ class BBoxHead(BaseModule):
             >>> # xdoctest: +REQUIRES(module:kwarray)
             >>> import kwarray
             >>> import numpy as np
-            >>> from mmdet.core.bbox.demodata import random_boxes
+            >>> from mmmtl.core.bbox.demodata import random_boxes
             >>> self = BBoxHead(reg_class_agnostic=True)
             >>> n_roi = 2
             >>> n_img = 4
@@ -543,7 +543,7 @@ class BBoxHead(BaseModule):
                 bboxes = torch.where(bboxes > max_xy, max_xy, bboxes)
 
         # Replace multiclass_nms with ONNX::NonMaxSuppression in deployment
-        from mmdet.core.export import add_dummy_nms_for_onnx
+        from mmmtl.core.export import add_dummy_nms_for_onnx
         max_output_boxes_per_class = cfg.nms.get('max_output_boxes_per_class',
                                                  cfg.max_per_img)
         iou_threshold = cfg.nms.get('iou_threshold', 0.5)

@@ -354,7 +354,7 @@ import pycocotools.mask as mask_util
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
 
-from mmdet.core.evaluation.panoptic_utils import INSTANCE_OFFSET
+from mmmtl.core.evaluation.panoptic_utils import INSTANCE_OFFSET
 from ..mask.structures import bitmap_to_polygon
 from ..utils import mask2ndarray
 from .palette import get_palette, palette_val

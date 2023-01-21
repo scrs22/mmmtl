@@ -1,5 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from mmdet.core import bbox2roi
+from mmmtl.core import bbox2roi
 from ..builder import HEADS
 from ..losses.pisa_loss import carl_loss, isr_p
 from .standard_roi_head import StandardRoIHead
@@ -26,7 +26,7 @@ class PISARoIHead(StandardRoIHead):
                 has: 'img_shape', 'scale_factor', 'flip', and may also contain
                 'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
                 For details on the values of these keys see
-                `mmdet/datasets/pipelines/formatting.py:Collect`.
+                `mmmtl/datasets/pipelines/formatting.py:Collect`.
             proposals (list[Tensors]): List of region proposals.
             gt_bboxes (list[Tensor]): Each item are the truth boxes for each
                 image in [tl_x, tl_y, br_x, br_y] format.

@@ -2,8 +2,8 @@
 import torch.nn as nn
 from mmcv.cnn import ConvModule
 
-from mmdet.models.builder import HEADS
-from mmdet.models.utils import build_linear_layer
+from mmmtl.models.builder import HEADS
+from mmmtl.models.utils import build_linear_layer
 from .bbox_head import BBoxHead
 
 

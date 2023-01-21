@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import torch
 
-from mmdet.utils import util_mixins
+from mmmtl.utils import util_mixins
 
 
 class SamplingResult(util_mixins.NiceRepr):
@@ -9,7 +9,7 @@ class SamplingResult(util_mixins.NiceRepr):
 
     Example:
         >>> # xdoctest: +IGNORE_WANT
-        >>> from mmdet.core.bbox.samplers.sampling_result import *  # NOQA
+        >>> from mmmtl.core.bbox.samplers.sampling_result import *  # NOQA
         >>> self = SamplingResult.random(rng=10)
         >>> print(f'self = {self}')
         self = <SamplingResult({
@@ -108,13 +108,13 @@ class SamplingResult(util_mixins.NiceRepr):
             :obj:`SamplingResult`: Randomly generated sampling result.
 
         Example:
-            >>> from mmdet.core.bbox.samplers.sampling_result import *  # NOQA
+            >>> from mmmtl.core.bbox.samplers.sampling_result import *  # NOQA
             >>> self = SamplingResult.random()
             >>> print(self.__dict__)
         """
-        from mmdet.core.bbox import demodata
-        from mmdet.core.bbox.assigners.assign_result import AssignResult
-        from mmdet.core.bbox.samplers.random_sampler import RandomSampler
+        from mmmtl.core.bbox import demodata
+        from mmmtl.core.bbox.assigners.assign_result import AssignResult
+        from mmmtl.core.bbox.samplers.random_sampler import RandomSampler
         rng = demodata.ensure_rng(rng)
 
         # make probabilistic?

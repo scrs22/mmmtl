@@ -3,8 +3,8 @@ import torch.nn as nn
 from mmcv.cnn import ConvModule
 from mmcv.runner import BaseModule, ModuleList
 
-from mmdet.models.backbones.resnet import Bottleneck
-from mmdet.models.builder import HEADS
+from mmmtl.models.backbones.resnet import Bottleneck
+from mmmtl.models.builder import HEADS
 from .bbox_head import BBoxHead
 
 

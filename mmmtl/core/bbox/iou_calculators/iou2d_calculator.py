@@ -74,7 +74,7 @@ class BboxOverlaps2D:
 def bbox_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False, eps=1e-6):
     """Calculate overlap between two set of bboxes.
 
-    FP16 Contributed by https://github.com/open-mmlab/mmdetection/pull/4889
+    FP16 Contributed by https://github.com/open-mmlab/mmmtlection/pull/4889
     Note:
         Assume bboxes1 is M x 4, bboxes2 is N x 4, when mode is 'iou',
         there are some new generated variable when calculating IOU

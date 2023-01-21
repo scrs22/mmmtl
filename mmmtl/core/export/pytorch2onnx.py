@@ -20,7 +20,7 @@ def generate_inputs_and_wrap_model(config_path,
     1. generate corresponding inputs which are used to execute the model.
     2. Wrap the model's forward function.
 
-    For example, the MMDet models' forward function has a parameter
+    For example, the mmmtl models' forward function has a parameter
     ``return_loss:bool``. As we want to set it as False while export API
     supports neither bool type or kwargs. So we have to replace the forward
     method like ``model.forward = partial(model.forward, return_loss=False)``.
@@ -30,8 +30,8 @@ def generate_inputs_and_wrap_model(config_path,
             export to ONNX
         checkpoint_path (str): Path to the corresponding checkpoint
         input_config (dict): the exactly data in this dict depends on the
-            framework. For MMSeg, we can just declare the input shape,
-            and generate the dummy data accordingly. However, for MMDet,
+            framework. For mmmtl, we can just declare the input shape,
+            and generate the dummy data accordingly. However, for mmmtl,
             we may pass the real img path, or the NMS will return None
             as there is no legal bbox.
 
@@ -73,7 +73,7 @@ def build_model_from_cfg(config_path, checkpoint_path, cfg_options=None):
     Returns:
         torch.nn.Module: the built model
     """
-    from mmdet.models import build_detector
+    from mmmtl.models import build_detector
 
     cfg = mmcv.Config.fromfile(config_path)
     if cfg_options is not None:
@@ -91,7 +91,7 @@ def build_model_from_cfg(config_path, checkpoint_path, cfg_options=None):
     if 'CLASSES' in checkpoint.get('meta', {}):
         model.CLASSES = checkpoint['meta']['CLASSES']
     else:
-        from mmdet.datasets import DATASETS
+        from mmmtl.datasets import DATASETS
         dataset = DATASETS.get(cfg.data.test['type'])
         assert (dataset is not None)
         model.CLASSES = dataset.CLASSES
@@ -110,7 +110,7 @@ def preprocess_example_input(input_config):
             meta information for the example input image.
 
     Examples:
-        >>> from mmdet.core.export import preprocess_example_input
+        >>> from mmmtl.core.export import preprocess_example_input
         >>> input_config = {
         >>>         'input_shape': (1,3,224,224),
         >>>         'input_path': 'demo/demo.jpg',

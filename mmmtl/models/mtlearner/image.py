@@ -2,8 +2,8 @@
 from ..builder import build_mtlearner, build_backbone, build_head, build_neck, MTLEARNERS
 # from ..builder import build_classifier, build_detector, build_segmentor
 from mmmtl.models.builder import build_classifier
-from mmdet.models.builder import build_detector
-from mmseg.models.builder import build_segmentor
+from mmmtl.models.builder import build_detector
+from mmmtl.models.builder import build_segmentor
 from ..heads import MultiLabelClsHead
 from ..utils.augment import Augments
 from .base import BaseMTLearner

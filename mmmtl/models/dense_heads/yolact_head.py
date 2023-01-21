@@ -6,8 +6,8 @@ import torch.nn.functional as F
 from mmcv.cnn import ConvModule
 from mmcv.runner import BaseModule, ModuleList, force_fp32
 
-from mmdet.core import build_sampler, fast_nms, images_to_levels, multi_apply
-from mmdet.core.utils import select_single_mlvl
+from mmmtl.core import build_sampler, fast_nms, images_to_levels, multi_apply
+from mmmtl.core.utils import select_single_mlvl
 from ..builder import HEADS, build_loss
 from .anchor_head import AnchorHead
 
@@ -421,7 +421,7 @@ class YOLACTHead(AnchorHead):
                     max_scores, _ = scores.max(dim=1)
                 else:
                     # remind that we set FG labels to [0, num_class-1]
-                    # since mmdet v2.0
+                    # since mmmtl v2.0
                     # BG cat_id: num_class
                     max_scores, _ = scores[:, :-1].max(dim=1)
                 _, topk_inds = max_scores.topk(nms_pre)
@@ -441,7 +441,7 @@ class YOLACTHead(AnchorHead):
         mlvl_coeffs = torch.cat(mlvl_coeffs)
         if self.use_sigmoid_cls:
             # Add a dummy background class to the backend when using sigmoid
-            # remind that we set FG labels to [0, num_class-1] since mmdet v2.0
+            # remind that we set FG labels to [0, num_class-1] since mmmtl v2.0
             # BG cat_id: num_class
             padding = mlvl_scores.new_zeros(mlvl_scores.shape[0], 1)
             mlvl_scores = torch.cat([mlvl_scores, padding], dim=1)
@@ -693,7 +693,7 @@ class YOLACTProtonet(BaseModule):
         # The reason for not using self.training is that
         # val workflow will have a dimension mismatch error.
         # Note that this writing method is very tricky.
-        # Fix https://github.com/open-mmlab/mmdetection/issues/5978
+        # Fix https://github.com/open-mmlab/mmmtlection/issues/5978
         is_train_or_val_workflow = (coeff_pred[0].dim() == 4)
 
         # Train or val workflow

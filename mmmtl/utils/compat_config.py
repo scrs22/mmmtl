@@ -37,7 +37,7 @@ def compat_runner_args(cfg):
 def compat_imgs_per_gpu(cfg):
     cfg = copy.deepcopy(cfg)
     if 'imgs_per_gpu' in cfg.data:
-        warnings.warn('"imgs_per_gpu" is deprecated in MMDet V2.0. '
+        warnings.warn('"imgs_per_gpu" is deprecated in mmmtl V2.0. '
                       'Please use "samples_per_gpu" instead')
         if 'samples_per_gpu' in cfg.data:
             warnings.warn(

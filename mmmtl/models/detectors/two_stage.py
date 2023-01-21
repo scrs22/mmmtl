@@ -72,7 +72,7 @@ class TwoStageDetector(BaseDetector):
     def forward_dummy(self, img):
         """Used for computing network flops.
 
-        See `mmdetection/tools/analysis_tools/get_flops.py`
+        See `mmmtlection/tools/analysis_tools/get_flops.py`
         """
         outs = ()
         # backbone
@@ -105,7 +105,7 @@ class TwoStageDetector(BaseDetector):
                 has: 'img_shape', 'scale_factor', 'flip', and may also contain
                 'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
                 For details on the values of these keys see
-                `mmdet/datasets/pipelines/formatting.py:Collect`.
+                `mmmtl/datasets/pipelines/formatting.py:Collect`.
 
             gt_bboxes (list[Tensor]): Ground truth bboxes for each image with
                 shape (num_gts, 4) in [tl_x, tl_y, br_x, br_y] format.
@@ -207,5 +207,5 @@ class TwoStageDetector(BaseDetector):
                 f'{self.__class__.__name__} can not '
                 f'be exported to ONNX. Please refer to the '
                 f'list of supported models,'
-                f'https://mmdetection.readthedocs.io/en/latest/tutorials/pytorch2onnx.html#list-of-supported-models-exportable-to-onnx'  # noqa E501
+                f'https://mmmtlection.readthedocs.io/en/latest/tutorials/pytorch2onnx.html#list-of-supported-models-exportable-to-onnx'  # noqa E501
             )

@@ -6,11 +6,11 @@ from mmcv.cnn import (bias_init_with_prob, build_activation_layer,
 from mmcv.cnn.bricks.transformer import FFN, MultiheadAttention
 from mmcv.runner import auto_fp16, force_fp32
 
-from mmdet.core import multi_apply
-from mmdet.models.builder import HEADS, build_loss
-from mmdet.models.dense_heads.atss_head import reduce_mean
-from mmdet.models.losses import accuracy
-from mmdet.models.utils import build_transformer
+from mmmtl.core import multi_apply
+from mmmtl.models.builder import HEADS, build_loss
+from mmmtl.models.dense_heads.atss_head import reduce_mean
+from mmmtl.models.losses import accuracy
+from mmmtl.models.utils import build_transformer
 from .bbox_head import BBoxHead
 
 

@@ -2,9 +2,9 @@
 import torch
 import torch.nn.functional as F
 
-from mmdet.core.evaluation.panoptic_utils import INSTANCE_OFFSET
-from mmdet.core.mask import mask2bbox
-from mmdet.models.builder import HEADS
+from mmmtl.core.evaluation.panoptic_utils import INSTANCE_OFFSET
+from mmmtl.core.mask import mask2bbox
+from mmmtl.models.builder import HEADS
 from .base_panoptic_fusion_head import BasePanopticFusionHead
 
 

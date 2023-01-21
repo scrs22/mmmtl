@@ -2,8 +2,8 @@
 import torch
 from scipy.optimize import linear_sum_assignment
 
-from mmdet.core.bbox.builder import BBOX_ASSIGNERS
-from mmdet.core.bbox.match_costs.builder import build_match_cost
+from mmmtl.core.bbox.builder import BBOX_ASSIGNERS
+from mmmtl.core.bbox.match_costs.builder import build_match_cost
 from .assign_result import AssignResult
 from .base_assigner import BaseAssigner
 

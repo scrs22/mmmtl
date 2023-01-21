@@ -10,8 +10,8 @@ from mmcv.ops.carafe import CARAFEPack
 from mmcv.runner import BaseModule, ModuleList, auto_fp16, force_fp32
 from torch.nn.modules.utils import _pair
 
-from mmdet.core import mask_target
-from mmdet.models.builder import HEADS, build_loss
+from mmmtl.core import mask_target
+from mmmtl.models.builder import HEADS, build_loss
 
 BYTES_PER_FLOAT = 4
 # TODO: This memory limit may be too much or too little. It would be better to
@@ -148,7 +148,7 @@ class FCNMaskHead(BaseModule):
     def loss(self, mask_pred, mask_targets, labels):
         """
         Example:
-            >>> from mmdet.models.roi_heads.mask_heads.fcn_mask_head import *  # NOQA
+            >>> from mmmtl.models.roi_heads.mask_heads.fcn_mask_head import *  # NOQA
             >>> N = 7  # N = number of extracted ROIs
             >>> C, H, W = 11, 32, 32
             >>> # Create example instance of FCN Mask Head.
@@ -203,7 +203,7 @@ class FCNMaskHead(BaseModule):
 
         Example:
             >>> import mmcv
-            >>> from mmdet.models.roi_heads.mask_heads.fcn_mask_head import *  # NOQA
+            >>> from mmmtl.models.roi_heads.mask_heads.fcn_mask_head import *  # NOQA
             >>> N = 7  # N = number of extracted ROIs
             >>> C, H, W = 11, 32, 32
             >>> # Create example instance of FCN Mask Head.
@@ -270,7 +270,7 @@ class FCNMaskHead(BaseModule):
             # when the image resolution is large,
             # the calculation of num_chunks will overflow.
             # so we need to change the types of img_w and img_h to int.
-            # See https://github.com/open-mmlab/mmdetection/pull/5191
+            # See https://github.com/open-mmlab/mmmtlection/pull/5191
             num_chunks = int(
                 np.ceil(N * int(img_h) * int(img_w) * BYTES_PER_FLOAT /
                         GPU_MEM_LIMIT))

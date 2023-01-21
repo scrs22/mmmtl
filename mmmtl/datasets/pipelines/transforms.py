@@ -8,9 +8,9 @@ from numpy import random
 
 from ..builder import PIPELINES
 
-from mmdet.core import BitmapMasks, PolygonMasks, find_inside_bboxes
-from mmdet.core.evaluation.bbox_overlaps import bbox_overlaps
-from mmdet.utils import log_img_scale
+from mmmtl.core import BitmapMasks, PolygonMasks, find_inside_bboxes
+from mmmtl.core.evaluation.bbox_overlaps import bbox_overlaps
+from mmmtl.utils import log_img_scale
 from ..builder import PIPELINES
 
 try:

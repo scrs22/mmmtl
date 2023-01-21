@@ -1013,7 +1013,7 @@ def inverse_sigmoid(x, eps=1e-5):
 #             # class (foreground) because we use [0, num_classes - 1] to
 #             # indicate class labels, background class is indicated by
 #             # num_classes (similar convention in RPN).
-#             # See https://github.com/open-mmlab/mmdetection/blob/master/mmdet/models/dense_heads/deformable_detr_head.py#L241 # noqa
+#             # See https://github.com/open-mmlab/mmmtlection/blob/master/mmmtl/models/dense_heads/deformable_detr_head.py#L241 # noqa
 #             # This follows the official implementation of Deformable DETR.
 #             topk_proposals = torch.topk(
 #                 enc_outputs_class[..., 0], topk, dim=1)[1]

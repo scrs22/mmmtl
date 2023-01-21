@@ -2,8 +2,8 @@
 import numpy as np
 import torch
 
-from mmdet.core import bbox2roi
-from mmdet.models.losses import SmoothL1Loss
+from mmmtl.core import bbox2roi
+from mmmtl.models.losses import SmoothL1Loss
 from ..builder import HEADS
 from .standard_roi_head import StandardRoIHead
 
@@ -39,7 +39,7 @@ class DynamicRoIHead(StandardRoIHead):
                 has: 'img_shape', 'scale_factor', 'flip', and may also contain
                 'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
                 For details on the values of these keys see
-                `mmdet/datasets/pipelines/formatting.py:Collect`.
+                `mmmtl/datasets/pipelines/formatting.py:Collect`.
 
             proposals (list[Tensors]): list of region proposals.
 

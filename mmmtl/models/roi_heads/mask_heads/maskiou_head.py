@@ -6,7 +6,7 @@ from mmcv.cnn import Conv2d, Linear, MaxPool2d
 from mmcv.runner import BaseModule, force_fp32
 from torch.nn.modules.utils import _pair
 
-from mmdet.models.builder import HEADS, build_loss
+from mmmtl.models.builder import HEADS, build_loss
 
 
 @HEADS.register_module()

@@ -9,10 +9,10 @@ import torch.nn.functional as F
 from mmcv.cnn import ConvModule
 from mmcv.runner import BaseModule, auto_fp16, force_fp32
 
-from mmdet.core import InstanceData, mask_matrix_nms, multi_apply
-from mmdet.core.utils import center_of_mass, generate_coordinate
-from mmdet.models.builder import HEADS
-from mmdet.utils.misc import floordiv
+from mmmtl.core import InstanceData, mask_matrix_nms, multi_apply
+from mmmtl.core.utils import center_of_mass, generate_coordinate
+from mmmtl.models.builder import HEADS
+from mmmtl.utils.misc import floordiv
 from .solo_head import SOLOHead
 
 

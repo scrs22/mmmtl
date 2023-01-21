@@ -27,8 +27,8 @@ if platform.system() != 'Windows':
 DATASETS = Registry('dataset')
 PIPELINES = Registry('pipeline')
 SAMPLERS = Registry('sampler')
-# import mmdet.datasets as detdataset
-# import mmseg.datasets as segdataset
+# import mmmtl.datasets as detdataset
+# import mmmtl.datasets as segdataset
 # DET_DATASETS = detdataset.DATASETS
 # SEG_DATASETS = segdataset.DATASETS
 

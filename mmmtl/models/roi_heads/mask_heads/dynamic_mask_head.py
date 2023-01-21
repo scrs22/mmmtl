@@ -3,10 +3,10 @@ import torch
 import torch.nn as nn
 from mmcv.runner import auto_fp16, force_fp32
 
-from mmdet.core import mask_target
-from mmdet.models.builder import HEADS
-from mmdet.models.dense_heads.atss_head import reduce_mean
-from mmdet.models.utils import build_transformer
+from mmmtl.core import mask_target
+from mmmtl.models.builder import HEADS
+from mmmtl.models.dense_heads.atss_head import reduce_mean
+from mmmtl.models.utils import build_transformer
 from .fcn_mask_head import FCNMaskHead
 
 

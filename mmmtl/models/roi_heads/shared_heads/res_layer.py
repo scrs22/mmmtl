@@ -4,9 +4,9 @@ import warnings
 import torch.nn as nn
 from mmcv.runner import BaseModule, auto_fp16
 
-from mmdet.models.backbones import ResNet
-from mmdet.models.builder import SHARED_HEADS
-from mmdet.models.utils import ResLayer as _ResLayer
+from mmmtl.models.backbones import ResNet
+from mmmtl.models.builder import SHARED_HEADS
+from mmmtl.models.utils import ResLayer as _ResLayer
 
 
 @SHARED_HEADS.register_module()

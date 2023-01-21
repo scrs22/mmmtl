@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import torch
 
-from mmdet.core import bbox2result
+from mmmtl.core import bbox2result
 from ..builder import DETECTORS, build_head
 from .single_stage import SingleStageDetector
 
@@ -28,7 +28,7 @@ class YOLACT(SingleStageDetector):
     def forward_dummy(self, img):
         """Used for computing network flops.
 
-        See `mmdetection/tools/analysis_tools/get_flops.py`
+        See `mmmtlection/tools/analysis_tools/get_flops.py`
         """
         feat = self.extract_feat(img)
         bbox_outs = self.bbox_head(feat)
@@ -50,7 +50,7 @@ class YOLACT(SingleStageDetector):
                 has: 'img_shape', 'scale_factor', 'flip', and may also contain
                 'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
                 For details on the values of these keys see
-                `mmdet/datasets/pipelines/formatting.py:Collect`.
+                `mmmtl/datasets/pipelines/formatting.py:Collect`.
             gt_bboxes (list[Tensor]): Ground truth bboxes for each image with
                 shape (num_gts, 4) in [tl_x, tl_y, br_x, br_y] format.
             gt_labels (list[Tensor]): class indices corresponding to each box

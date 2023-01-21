@@ -7,8 +7,8 @@ from mmcv.cnn.bricks.transformer import (build_positional_encoding,
                                          build_transformer_layer_sequence)
 from mmcv.runner import force_fp32
 
-from mmdet.core import build_assigner, build_sampler, multi_apply, reduce_mean
-from mmdet.models.utils import preprocess_panoptic_gt
+from mmmtl.core import build_assigner, build_sampler, multi_apply, reduce_mean
+from mmmtl.models.utils import preprocess_panoptic_gt
 from ..builder import HEADS, build_loss
 from .anchor_free_head import AnchorFreeHead
 

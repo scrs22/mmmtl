@@ -2,8 +2,8 @@
 import torch
 import torch.nn.functional as F
 
-from mmdet.core.bbox.iou_calculators import bbox_overlaps
-from mmdet.core.bbox.transforms import bbox_cxcywh_to_xyxy, bbox_xyxy_to_cxcywh
+from mmmtl.core.bbox.iou_calculators import bbox_overlaps
+from mmmtl.core.bbox.transforms import bbox_cxcywh_to_xyxy, bbox_xyxy_to_cxcywh
 from .builder import MATCH_COST
 
 
@@ -16,7 +16,7 @@ class BBoxL1Cost:
          box_format (str, optional): 'xyxy' for DETR, 'xywh' for Sparse_RCNN
 
      Examples:
-         >>> from mmdet.core.bbox.match_costs.match_cost import BBoxL1Cost
+         >>> from mmmtl.core.bbox.match_costs.match_cost import BBoxL1Cost
          >>> import torch
          >>> self = BBoxL1Cost()
          >>> bbox_pred = torch.rand(1, 4)
@@ -64,7 +64,7 @@ class FocalLossCost:
             default False.
 
      Examples:
-         >>> from mmdet.core.bbox.match_costs.match_cost import FocalLossCost
+         >>> from mmmtl.core.bbox.match_costs.match_cost import FocalLossCost
          >>> import torch
          >>> self = FocalLossCost()
          >>> cls_pred = torch.rand(4, 3)
@@ -157,7 +157,7 @@ class ClassificationCost:
          weight (int | float, optional): loss_weight
 
      Examples:
-         >>> from mmdet.core.bbox.match_costs.match_cost import \
+         >>> from mmmtl.core.bbox.match_costs.match_cost import \
          ... ClassificationCost
          >>> import torch
          >>> self = ClassificationCost()
@@ -202,7 +202,7 @@ class IoUCost:
          weight (int | float, optional): loss weight
 
      Examples:
-         >>> from mmdet.core.bbox.match_costs.match_cost import IoUCost
+         >>> from mmmtl.core.bbox.match_costs.match_cost import IoUCost
          >>> import torch
          >>> self = IoUCost()
          >>> bboxes = torch.FloatTensor([[1,1, 2, 2], [2, 2, 3, 4]])
@@ -304,7 +304,7 @@ class CrossEntropyLossCost:
         use_sigmoid (bool, optional): Whether the prediction uses sigmoid
                 of softmax. Defaults to True.
     Examples:
-         >>> from mmdet.core.bbox.match_costs import CrossEntropyLossCost
+         >>> from mmmtl.core.bbox.match_costs import CrossEntropyLossCost
          >>> import torch
          >>> bce = CrossEntropyLossCost(use_sigmoid=True)
          >>> cls_pred = torch.tensor([[7.6, 1.2], [-1.3, 10]])

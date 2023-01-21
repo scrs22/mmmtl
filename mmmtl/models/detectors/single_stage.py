@@ -3,7 +3,7 @@ import warnings
 
 import torch
 
-from mmdet.core import bbox2result
+from mmmtl.core import bbox2result
 from ..builder import DETECTORS, build_backbone, build_head, build_neck
 from .base import BaseDetector
 from mmcv.utils.config import ConfigDict
@@ -58,7 +58,7 @@ class SingleStageDetector(BaseDetector):
     def forward_dummy(self, img):
         """Used for computing network flops.
 
-        See `mmdetection/tools/analysis_tools/get_flops.py`
+        See `mmmtlection/tools/analysis_tools/get_flops.py`
         """
         x = self.extract_feat(img)
         outs = self.bbox_head(x)
@@ -78,7 +78,7 @@ class SingleStageDetector(BaseDetector):
                 has: 'img_shape', 'scale_factor', 'flip', and may also contain
                 'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
                 For details on the values of these keys see
-                :class:`mmdet.datasets.pipelines.Collect`.
+                :class:`mmmtl.datasets.pipelines.Collect`.
             gt_bboxes (list[Tensor]): Each item are the truth boxes for each
                 image in [tl_x, tl_y, br_x, br_y] format.
             gt_labels (list[Tensor]): Class indices corresponding to each box

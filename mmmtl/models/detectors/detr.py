@@ -27,7 +27,7 @@ class DETR(SingleStageDetector):
     def forward_dummy(self, img):
         """Used for computing network flops.
 
-        See `mmdetection/tools/analysis_tools/get_flops.py`
+        See `mmmtlection/tools/analysis_tools/get_flops.py`
         """
         warnings.warn('Warning! MultiheadAttention in DETR does not '
                       'support flops computation! Do not use the '

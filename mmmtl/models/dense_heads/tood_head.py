@@ -6,10 +6,10 @@ from mmcv.cnn import ConvModule, Scale, bias_init_with_prob, normal_init
 from mmcv.ops import deform_conv2d
 from mmcv.runner import force_fp32
 
-from mmdet.core import (anchor_inside_flags, build_assigner, distance2bbox,
+from mmmtl.core import (anchor_inside_flags, build_assigner, distance2bbox,
                         images_to_levels, multi_apply, reduce_mean, unmap)
-from mmdet.core.utils import filter_scores_and_topk
-from mmdet.models.utils import sigmoid_geometric_mean
+from mmmtl.core.utils import filter_scores_and_topk
+from mmmtl.models.utils import sigmoid_geometric_mean
 from ..builder import HEADS, build_loss
 from .atss_head import ATSSHead
 
@@ -526,7 +526,7 @@ class TOODHead(ATSSHead):
             scores = cls_score.permute(1, 2,
                                        0).reshape(-1, self.cls_out_channels)
 
-            # After https://github.com/open-mmlab/mmdetection/pull/6268/,
+            # After https://github.com/open-mmlab/mmmtlection/pull/6268/,
             # this operation keeps fewer bboxes under the same `nms_pre`.
             # There is no difference in performance for most models. If you
             # find a slight drop in performance, you can set a larger

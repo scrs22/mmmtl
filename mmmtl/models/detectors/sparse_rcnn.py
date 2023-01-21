@@ -31,7 +31,7 @@ class SparseRCNN(TwoStageDetector):
                 has: 'img_shape', 'scale_factor', 'flip', and may also contain
                 'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
                 For details on the values of these keys see
-                :class:`mmdet.datasets.pipelines.Collect`.
+                :class:`mmmtl.datasets.pipelines.Collect`.
             gt_bboxes (list[Tensor]): Ground truth bboxes for each image with
                 shape (num_gts, 4) in [tl_x, tl_y, br_x, br_y] format.
             gt_labels (list[Tensor]): class indices corresponding to each box
@@ -93,7 +93,7 @@ class SparseRCNN(TwoStageDetector):
     def forward_dummy(self, img):
         """Used for computing network flops.
 
-        See `mmdetection/tools/analysis_tools/get_flops.py`
+        See `mmmtlection/tools/analysis_tools/get_flops.py`
         """
         # backbone
         x = self.extract_feat(img)

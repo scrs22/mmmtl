@@ -1,5 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-# migrate from mmdetection with modifications
+# migrate from mmmtlection with modifications
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

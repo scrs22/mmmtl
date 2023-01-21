@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from mmcv.cnn import ConvModule
 
-from mmdet.models.builder import HEADS
+from mmmtl.models.builder import HEADS
 from .fcn_mask_head import FCNMaskHead
 
 

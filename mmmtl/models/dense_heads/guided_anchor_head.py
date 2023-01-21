@@ -6,7 +6,7 @@ import torch.nn as nn
 from mmcv.ops import DeformConv2d, MaskedConv2d
 from mmcv.runner import BaseModule, force_fp32
 
-from mmdet.core import (anchor_inside_flags, build_assigner, build_bbox_coder,
+from mmmtl.core import (anchor_inside_flags, build_assigner, build_bbox_coder,
                         build_prior_generator, build_sampler, calc_region,
                         images_to_levels, multi_apply, multiclass_nms, unmap)
 from ..builder import HEADS, build_loss
@@ -840,7 +840,7 @@ class GuidedAnchorHead(AnchorHead):
                     max_scores, _ = scores.max(dim=1)
                 else:
                     # remind that we set FG labels to [0, num_class-1]
-                    # since mmdet v2.0
+                    # since mmmtl v2.0
                     # BG cat_id: num_class
                     max_scores, _ = scores[:, :-1].max(dim=1)
                 _, topk_inds = max_scores.topk(nms_pre)
@@ -857,7 +857,7 @@ class GuidedAnchorHead(AnchorHead):
         mlvl_scores = torch.cat(mlvl_scores)
         if self.use_sigmoid_cls:
             # Add a dummy background class to the backend when using sigmoid
-            # remind that we set FG labels to [0, num_class-1] since mmdet v2.0
+            # remind that we set FG labels to [0, num_class-1] since mmmtl v2.0
             # BG cat_id: num_class
             padding = mlvl_scores.new_zeros(mlvl_scores.shape[0], 1)
             mlvl_scores = torch.cat([mlvl_scores, padding], dim=1)

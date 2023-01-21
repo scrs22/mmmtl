@@ -40,7 +40,7 @@ class AnchorGenerator:
             width and height. By default it is 0 in V2.0.
 
     Examples:
-        >>> from mmdet.core import AnchorGenerator
+        >>> from mmmtl.core import AnchorGenerator
         >>> self = AnchorGenerator([16], [1.], [1.], [9])
         >>> all_anchors = self.grid_priors([(2, 2)], device='cpu')
         >>> print(all_anchors)
@@ -608,7 +608,7 @@ class SSDAnchorGenerator(AnchorGenerator):
 
 @PRIOR_GENERATORS.register_module()
 class LegacyAnchorGenerator(AnchorGenerator):
-    """Legacy anchor generator used in MMDetection V1.x.
+    """Legacy anchor generator used in mmmtlection V1.x.
 
     Note:
         Difference to the V2.0 anchor generator:
@@ -644,7 +644,7 @@ class LegacyAnchorGenerator(AnchorGenerator):
             in v1.x models.
 
     Examples:
-        >>> from mmdet.core import LegacyAnchorGenerator
+        >>> from mmmtl.core import LegacyAnchorGenerator
         >>> self = LegacyAnchorGenerator(
         >>>     [16], [1.], [1.], [9], center_offset=0.5)
         >>> all_anchors = self.grid_anchors(((2, 2),), device='cpu')
@@ -707,7 +707,7 @@ class LegacyAnchorGenerator(AnchorGenerator):
 
 @PRIOR_GENERATORS.register_module()
 class LegacySSDAnchorGenerator(SSDAnchorGenerator, LegacyAnchorGenerator):
-    """Legacy anchor generator used in MMDetection V1.x.
+    """Legacy anchor generator used in mmmtlection V1.x.
 
     The difference between `LegacySSDAnchorGenerator` and `SSDAnchorGenerator`
     can be found in `LegacyAnchorGenerator`.

@@ -4,7 +4,7 @@ https://github.com/ZwwWayne/K-Net/blob/main/knet/det/mask_pseudo_sampler.py."""
 
 import torch
 
-from mmdet.core.bbox.builder import BBOX_SAMPLERS
+from mmmtl.core.bbox.builder import BBOX_SAMPLERS
 from .base_sampler import BaseSampler
 from .mask_sampling_result import MaskSamplingResult
 

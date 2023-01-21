@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from mmcv.runner import ModuleList
 
-from mmdet.core import (bbox2result, bbox2roi, bbox_mapping, build_assigner,
+from mmmtl.core import (bbox2result, bbox2roi, bbox_mapping, build_assigner,
                         build_sampler, merge_aug_bboxes, merge_aug_masks,
                         multiclass_nms)
 from ..builder import HEADS, build_head, build_roi_extractor
@@ -203,7 +203,7 @@ class CascadeRoIHead(BaseRoIHead, BBoxTestMixin, MaskTestMixin):
                 has: 'img_shape', 'scale_factor', 'flip', and may also contain
                 'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
                 For details on the values of these keys see
-                `mmdet/datasets/pipelines/formatting.py:Collect`.
+                `mmmtl/datasets/pipelines/formatting.py:Collect`.
             proposals (list[Tensors]): list of region proposals.
             gt_bboxes (list[Tensor]): Ground truth bboxes for each image with
                 shape (num_gts, 4) in [tl_x, tl_y, br_x, br_y] format.

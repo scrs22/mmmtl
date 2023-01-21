@@ -13,7 +13,7 @@ from .base_backbone import BaseBackbone
 
 class MixFFN(BaseModule):
     """An implementation of MixFFN of VAN. Refer to
-    mmdetection/mmdet/models/backbones/pvt.py.
+    mmmtlection/mmmtl/models/backbones/pvt.py.
 
     The differences between MixFFN & FFN:
         1. Use 1X1 Conv to replace Linear layer.

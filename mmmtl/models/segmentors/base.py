@@ -254,7 +254,7 @@ class BaseSegmentor(BaseModule, metaclass=ABCMeta):
                 # and restore random state later.
                 # It will prevent loss of randomness, as the palette
                 # may be different in each iteration if not specified.
-                # See: https://github.com/open-mmlab/mmdetection/issues/5844
+                # See: https://github.com/open-mmlab/mmmtlection/issues/5844
                 state = np.random.get_state()
                 np.random.seed(42)
                 # random palette

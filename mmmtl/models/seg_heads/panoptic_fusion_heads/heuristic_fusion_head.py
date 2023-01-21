@@ -1,8 +1,8 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import torch
 
-from mmdet.core.evaluation.panoptic_utils import INSTANCE_OFFSET
-from mmdet.models.builder import HEADS
+from mmmtl.core.evaluation.panoptic_utils import INSTANCE_OFFSET
+from mmmtl.models.builder import HEADS
 from .base_panoptic_fusion_head import BasePanopticFusionHead
 
 

@@ -4,7 +4,7 @@ import copy
 import numpy as np
 import torch
 
-from mmdet.utils.util_mixins import NiceRepr
+from mmmtl.utils.util_mixins import NiceRepr
 
 
 class GeneralData(NiceRepr):
@@ -43,7 +43,7 @@ class GeneralData(NiceRepr):
             model predictions. Default: None.
 
     Examples:
-        >>> from mmdet.core import GeneralData
+        >>> from mmmtl.core import GeneralData
         >>> img_meta = dict(img_shape=(800, 1196, 3), pad_shape=(800, 1216, 3))
         >>> instance_data = GeneralData(meta_info=img_meta)
         >>> img_shape in instance_data

@@ -7,10 +7,10 @@ import torch.nn as nn
 from mmcv.cnn import ConvModule
 from mmcv.runner import force_fp32
 
-from mmdet.core import (build_assigner, build_bbox_coder,
+from mmmtl.core import (build_assigner, build_bbox_coder,
                         build_prior_generator, build_sampler, images_to_levels,
                         multi_apply, unmap)
-from mmdet.core.utils import filter_scores_and_topk
+from mmmtl.core.utils import filter_scores_and_topk
 from ..builder import HEADS, build_loss
 from .base_dense_head import BaseDenseHead
 from .dense_test_mixins import BBoxTestMixin
@@ -597,7 +597,7 @@ class SABLRetinaHead(BaseDenseHead, BBoxTestMixin):
             bbox_reg_pred = bbox_reg_pred.permute(1, 2, 0).reshape(
                 -1, self.side_num * 4)
 
-            # After https://github.com/open-mmlab/mmdetection/pull/6268/,
+            # After https://github.com/open-mmlab/mmmtlection/pull/6268/,
             # this operation keeps fewer bboxes under the same `nms_pre`.
             # There is no difference in performance for most models. If you
             # find a slight drop in performance, you can set a larger

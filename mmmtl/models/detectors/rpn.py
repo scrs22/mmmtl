@@ -6,7 +6,7 @@ import mmcv
 import torch
 from mmcv.image import tensor2imgs
 
-from mmdet.core import bbox_mapping
+from mmmtl.core import bbox_mapping
 from ..builder import DETECTORS, build_backbone, build_head, build_neck
 from .base import BaseDetector
 
@@ -71,7 +71,7 @@ class RPN(BaseDetector):
                 has: 'img_shape', 'scale_factor', 'flip', and may also contain
                 'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
                 For details on the values of these keys see
-                :class:`mmdet.datasets.pipelines.Collect`.
+                :class:`mmmtl.datasets.pipelines.Collect`.
             gt_bboxes (list[Tensor]): Each item are the truth boxes for each
                 image in [tl_x, tl_y, br_x, br_y] format.
             gt_bboxes_ignore (None | list[Tensor]): Specify which bounding

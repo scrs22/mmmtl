@@ -910,7 +910,7 @@ class CustomDatasetSeg(Dataset):
         if efficient_test is not None:
             warnings.warn(
                 'DeprecationWarning: ``efficient_test`` has been deprecated '
-                'since MMSeg v0.16, the ``get_gt_seg_maps()`` is CPU memory '
+                'since mmmtl v0.16, the ``get_gt_seg_maps()`` is CPU memory '
                 'friendly by default. ')
 
         for idx in range(len(self)):
@@ -952,7 +952,7 @@ class CustomDatasetSeg(Dataset):
                     # as the labels has been converted when dataset initialized
                     # in `get_palette_for_custom_classes ` this `label_map`
                     # should be `dict()`, see
-                    # https://github.com/open-mmlab/mmsegmentation/issues/1415
+                    # https://github.com/open-mmlab/mmmtlmentation/issues/1415
                     # for more ditails
                     label_map=dict(),
                     reduce_zero_label=self.reduce_zero_label))
@@ -1020,7 +1020,7 @@ class CustomDatasetSeg(Dataset):
                 # random state later.
                 # It will prevent loss of randomness, as the palette
                 # may be different in each iteration if not specified.
-                # See: https://github.com/open-mmlab/mmdetection/issues/5844
+                # See: https://github.com/open-mmlab/mmmtlection/issues/5844
                 state = np.random.get_state()
                 np.random.seed(42)
                 # random palette

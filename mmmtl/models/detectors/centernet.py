@@ -1,8 +1,8 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import torch
 
-from mmdet.core import bbox2result
-from mmdet.models.builder import DETECTORS
+from mmmtl.core import bbox2result
+from mmmtl.models.builder import DETECTORS
 from ...core.utils import flip_tensor
 from .single_stage import SingleStageDetector
 

@@ -309,7 +309,7 @@ class OpenImagesDataset(CustomDatasetDet):
         """Get image metas from pipeline."""
         self.temp_img_metas.extend(results['img_metas'])
         if dist.is_available() and self.world_size > 1:
-            from mmdet.apis.test import collect_results_cpu
+            from mmmtl.apis.test import collect_results_cpu
 
             self.test_img_metas = collect_results_cpu(self.temp_img_metas,
                                                       len(self))
