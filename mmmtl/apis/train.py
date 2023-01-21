@@ -82,7 +82,7 @@ def train_model(model,
 
     Args:
         model (:obj:`torch.nn.Module`): The model to be run.
-        dataset (:obj:`mmcls.datasets.BaseDataset` | List[BaseDataset]):
+        dataset (:obj:`mmmtl.datasets.BaseDataset` | List[BaseDataset]):
             The dataset used to train the model. It can be a single dataset,
             or a list of dataset with the same length as workflow.
         cfg (:obj:`mmcv.utils.Config`): The configs of the experiment.

@@ -125,7 +125,7 @@ class MMClsWandbHook(WandbLoggerHook):
                 self.log_checkpoint_metadata = False
                 runner.logger.warning(
                     'To log evaluation or checkpoint metadata in '
-                    'MMClsWandbHook, `EvalHook` or `DistEvalHook` in mmcls '
+                    'MMClsWandbHook, `EvalHook` or `DistEvalHook` in mmmtl '
                     'is required, please check whether the validation '
                     'is enabled.')
             else:
@@ -1051,11 +1051,11 @@ class MMSegWandbHook(WandbLoggerHook):
             if isinstance(hook, CheckpointHook):
                 self.ckpt_hook = hook
             if isinstance(hook, EvalHook):
-                from mmseg.apis import single_gpu_test
+                from mmmtl.apis import single_gpu_test
                 self.eval_hook = hook
                 self.test_fn = single_gpu_test
             if isinstance(hook, DistEvalHook):
-                from mmseg.apis import multi_gpu_test
+                from mmmtl.apis import multi_gpu_test
                 self.eval_hook = hook
                 self.test_fn = multi_gpu_test
 
@@ -1192,7 +1192,7 @@ class MMSegWandbHook(WandbLoggerHook):
 
     def _add_ground_truth(self, runner):
         # Get image loading pipeline
-        from mmseg.datasets.pipelines import LoadImageFromFile
+        from mmmtl.datasets.pipelines import LoadImageFromFile
         img_loader = None
         for t in self.val_dataset.pipeline.transforms:
             if isinstance(t, LoadImageFromFile):

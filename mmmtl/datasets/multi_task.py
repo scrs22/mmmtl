@@ -133,7 +133,7 @@ class MultiTaskDataset:
             ``data_root`` for the ``"img_path"`` field in the annotation file.
             Defaults to None.
         pipeline (Sequence[dict]): A list of dict, where each element
-            represents a operation defined in :mod:`mmcls.datasets.pipelines`.
+            represents a operation defined in :mod:`mmmtl.datasets.pipelines`.
             Defaults to an empty tuple.
         test_mode (bool): in train mode or test mode. Defaults to False.
         file_client_args (dict, optional): Arguments to instantiate a

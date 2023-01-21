@@ -1,10 +1,10 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from .builder import DATASETS
-from .custom import CustomDataset
+from .custom import CustomDatasetSeg
 
 
 @DATASETS.register_module()
-class ISPRSDataset(CustomDataset):
+class ISPRSDataset(CustomDatasetSeg):
     """ISPRS dataset.
 
     In segmentation map annotation for LoveDA, 0 is the ignore index.

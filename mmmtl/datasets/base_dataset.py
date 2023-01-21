@@ -27,7 +27,7 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
     Args:
         data_prefix (str): the prefix of data path
         pipeline (list): a list of dict, where each element represents
-            a operation defined in `mmcls.datasets.pipelines`
+            a operation defined in `mmmtl.datasets.pipelines`
         ann_file (str | None): the annotation file. When ann_file is str,
             the subclass is expected to read from the ann_file. When ann_file
             is None, the subclass is expected to read according to data_prefix

@@ -12,13 +12,13 @@ import torch.distributed as dist
 from mmcv.runner import get_dist_info
 from mmcv.utils import print_log
 
-from mmdet.core import eval_map
+from mmmtl.core import eval_map
 from .builder import DATASETS
-from .custom import CustomDataset
+from .custom import CustomDatasetDet
 
 
 @DATASETS.register_module()
-class OpenImagesDataset(CustomDataset):
+class OpenImagesDataset(CustomDatasetDet):
     """Open Images dataset for detection.
 
     Args:

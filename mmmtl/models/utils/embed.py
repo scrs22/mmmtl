@@ -138,7 +138,7 @@ class PatchEmbed(BaseModule):
                  conv_cfg=None,
                  init_cfg=None):
         super(PatchEmbed, self).__init__(init_cfg)
-        warnings.warn('The `PatchEmbed` in mmcls will be deprecated. '
+        warnings.warn('The `PatchEmbed` in mmmtl will be deprecated. '
                       'Please use `mmcv.cnn.bricks.transformer.PatchEmbed`. '
                       "It's more general and supports dynamic input shape")
 

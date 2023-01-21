@@ -2,11 +2,11 @@
 import os.path as osp
 
 from .builder import DATASETS
-from .custom import CustomDataset
+from .custom import CustomDatasetSeg
 
 
 @DATASETS.register_module()
-class STAREDataset(CustomDataset):
+class STAREDataset(CustomDatasetSeg):
     """STARE dataset.
 
     In segmentation map annotation for STARE, 0 stands for background, which is

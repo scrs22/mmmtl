@@ -126,7 +126,7 @@ class CustomDataset(BaseDataset):
     Args:
         data_prefix (str): The path of data directory.
         pipeline (Sequence[dict]): A list of dict, where each element
-            represents a operation defined in :mod:`mmcls.datasets.pipelines`.
+            represents a operation defined in :mod:`mmmtl.datasets.pipelines`.
             Defaults to an empty tuple.
         classes (str | Sequence[str], optional): Specify names of classes.
 
@@ -240,7 +240,7 @@ from mmcv.utils import print_log
 from terminaltables import AsciiTable
 from torch.utils.data import Dataset
 
-from mmdet.core import eval_map, eval_recalls
+from mmmtl.core import eval_map, eval_recalls
 from .builder import DATASETS
 from .pipelines import Compose
 
@@ -655,8 +655,8 @@ from mmcv.utils import print_log
 from prettytable import PrettyTable
 from torch.utils.data import Dataset
 
-from mmseg.core import eval_metrics, intersect_and_union, pre_eval_to_metrics
-from mmseg.utils import get_root_logger
+from mmmtl.core import eval_metrics, intersect_and_union, pre_eval_to_metrics
+from mmmtl.utils import get_root_logger
 from .builder import DATASETS
 from .pipelines import Compose, LoadAnnotations
 

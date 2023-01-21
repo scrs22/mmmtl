@@ -1,10 +1,10 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from .builder import DATASETS
-from .custom import CustomDataset
+from .custom import CustomDatasetSeg
 
 
 @DATASETS.register_module()
-class PotsdamDataset(CustomDataset):
+class PotsdamDataset(CustomDatasetSeg):
     """ISPRS Potsdam dataset.
 
     In segmentation map annotation for Potsdam dataset, 0 is the ignore index.

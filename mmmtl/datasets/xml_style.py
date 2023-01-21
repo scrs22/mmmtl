@@ -7,11 +7,11 @@ import numpy as np
 from PIL import Image
 
 from .builder import DATASETS
-from .custom import CustomDataset
+from .custom import CustomDatasetDet
 
 
 @DATASETS.register_module()
-class XMLDataset(CustomDataset):
+class XMLDataset(CustomDatasetDet):
     """XML dataset for detection.
 
     Args:

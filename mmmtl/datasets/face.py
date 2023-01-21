@@ -2,11 +2,11 @@
 import os.path as osp
 
 from .builder import DATASETS
-from .custom import CustomDataset
+from .custom import CustomDatasetSeg
 
 
 @DATASETS.register_module()
-class FaceOccludedDataset(CustomDataset):
+class FaceOccludedDataset(CustomDatasetSeg):
     """Face Occluded dataset.
 
     Args:

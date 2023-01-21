@@ -88,7 +88,7 @@ class PatchEmbed(_PatchEmbed):
 
 
 class GlobalPerceptron(SELayer):
-    """GlobalPerceptron implemented by using ``mmcls.modes.SELayer``.
+    """GlobalPerceptron implemented by using ``mmmtl.modes.SELayer``.
 
     Args:
         input_channels (int): The number of input (and output) channels

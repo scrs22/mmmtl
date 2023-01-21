@@ -6,11 +6,11 @@ import numpy as np
 from PIL import Image
 
 from .builder import DATASETS
-from .custom import CustomDataset
+from .custom import CustomDatasetSeg
 
 
 @DATASETS.register_module()
-class LoveDADataset(CustomDataset):
+class LoveDADataset(CustomDatasetSeg):
     """LoveDA dataset.
 
     In segmentation map annotation for LoveDA, 0 is the ignore index.

@@ -24,7 +24,7 @@ class ImageNet21k(CustomDataset):
     Args:
         data_prefix (str): The path of data directory.
         pipeline (Sequence[dict]): A list of dict, where each element
-            represents a operation defined in :mod:`mmcls.datasets.pipelines`.
+            represents a operation defined in :mod:`mmmtl.datasets.pipelines`.
             Defaults to an empty tuple.
         classes (str | Sequence[str], optional): Specify names of classes.
 

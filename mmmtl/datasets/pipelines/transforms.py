@@ -8,6 +8,22 @@ from numpy import random
 
 from ..builder import PIPELINES
 
+from mmdet.core import BitmapMasks, PolygonMasks, find_inside_bboxes
+from mmdet.core.evaluation.bbox_overlaps import bbox_overlaps
+from mmdet.utils import log_img_scale
+from ..builder import PIPELINES
+
+try:
+    from imagecorruptions import corrupt
+except ImportError:
+    corrupt = None
+
+try:
+    import albumentations
+    from albumentations import Compose
+except ImportError:
+    albumentations = None
+    Compose = None
 
 @PIPELINES.register_module()
 class ResizeToMultiple(object):

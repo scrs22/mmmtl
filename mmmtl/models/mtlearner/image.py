@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from ..builder import build_mtlearner, build_backbone, build_head, build_neck, MTLEARNERS
 # from ..builder import build_classifier, build_detector, build_segmentor
-from mmcls.models.builder import build_classifier
+from mmmtl.models.builder import build_classifier
 from mmdet.models.builder import build_detector
 from mmseg.models.builder import build_segmentor
 from ..heads import MultiLabelClsHead

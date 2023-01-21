@@ -1,10 +1,10 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from .builder import DATASETS
-from .cityscapes import CityscapesDataset
+from .cityscapes import CityscapesDatasetSeg
 
 
 @DATASETS.register_module()
-class DarkZurichDataset(CityscapesDataset):
+class DarkZurichDataset(CityscapesDatasetSeg):
     """DarkZurichDataset dataset."""
 
     def __init__(self, **kwargs):
