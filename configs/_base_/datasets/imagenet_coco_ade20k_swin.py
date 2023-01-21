@@ -189,9 +189,9 @@ cat_dataloader = dict(samples_per_gpu=8, workers_per_gpu=2,
 )
 
 dataset_type = "ConcatMultiTypeDataset"
-data = dict(
-    # samples_per_gpu=4,
-    # workers_per_gpu=4,
+data = dict( 
+    samples_per_gpu=1,  # must have, otherwise bug report
+    workers_per_gpu=1,
     train=dict(
         type='ConcatMultiTypeDataset',
         datasets = [

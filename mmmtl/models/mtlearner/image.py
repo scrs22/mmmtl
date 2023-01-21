@@ -1,5 +1,9 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from ..builder import build_mtlearner, build_backbone, build_head, build_neck, MTLEARNERS
+# from ..builder import build_classifier, build_detector, build_segmentor
+from mmcls.models.builder import build_classifier
+from mmdet.models.builder import build_detector
+from mmseg.models.builder import build_segmentor
 from ..heads import MultiLabelClsHead
 from ..utils.augment import Augments
 from .base import BaseMTLearner
@@ -28,7 +32,13 @@ class ImageMTLearner(BaseMTLearner):
         self.mt_models = []
         for model_cfg in models:
             model_cfg['backbone'] = self.backbone
-            model = build_mtlearner(model_cfg)
+            if model_cfg.task == 'cls':
+                model = build_classifier(model_cfg)
+            elif model_cfg.task == 'det':
+                model = build_detector(model_cfg)
+            elif model_cfg.task == 'seg':
+                model = build_segmentor(model_cfg)
+            # model = build_mtlearner(model_cfg)
             self.mt_models.append(model)
 
         if neck is not None:
