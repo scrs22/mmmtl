@@ -1,14 +1,19 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import warnings
-
+from pathlib import Path
+import matplotlib.pyplot as plt
 import mmcv
 import numpy as np
 import torch
+from mmcv.ops import RoIPool
 from mmcv.parallel import collate, scatter
 from mmcv.runner import load_checkpoint
+
 from mmmtl.core import get_classes
+from mmmtl.datasets import replace_ImageToTensor
 from mmmtl.datasets.pipelines import Compose
-from mmmtl.models import build_classifier, build_detector
+from mmmtl.models import build_detector,build_segmentor
+
 
 def init_detector(config, checkpoint=None, device='cuda:0', cfg_options=None):
     """Initialize a detector from config file.
@@ -181,6 +186,60 @@ def inference_detector(model, imgs):
         return results[0]
     else:
         return results
+
+async def async_inference_detector(model, imgs):
+    """Async inference image(s) with the detector.
+    Args:
+        model (nn.Module): The loaded detector.
+        img (str | ndarray): Either image files or loaded images.
+    Returns:
+        Awaitable detection results.
+    """
+    if not isinstance(imgs, (list, tuple)):
+        imgs = [imgs]
+
+    cfg = model.cfg
+    device = next(model.parameters()).device  # model device
+
+    if isinstance(imgs[0], np.ndarray):
+        cfg = cfg.copy()
+        # set loading pipeline type
+        cfg.data.test.pipeline[0].type = 'LoadImageFromWebcam'
+
+    cfg.data.test.pipeline = replace_ImageToTensor(cfg.data.test.pipeline)
+    test_pipeline = Compose(cfg.data.test.pipeline)
+
+    datas = []
+    for img in imgs:
+        # prepare data
+        if isinstance(img, np.ndarray):
+            # directly add img
+            data = dict(img=img)
+        else:
+            # add information into dict
+            data = dict(img_info=dict(filename=img), img_prefix=None)
+        # build the data pipeline
+        data = test_pipeline(data)
+        datas.append(data)
+
+    data = collate(datas, samples_per_gpu=len(imgs))
+    # just get the actual data from DataContainer
+    data['img_metas'] = [img_metas.data[0] for img_metas in data['img_metas']]
+    data['img'] = [img.data[0] for img in data['img']]
+    if next(model.parameters()).is_cuda:
+        # scatter to specified GPU
+        data = scatter(data, [device])[0]
+    else:
+        for m in model.modules():
+            assert not isinstance(
+                m, RoIPool
+            ), 'CPU inference with RoIPool is not supported currently.'
+
+    # We don't restore `torch.is_grad_enabled()` value during concurrent
+    # inference since execution can overlap
+    torch.set_grad_enabled(False)
+    results = await model.aforward_test(rescale=True, **data)
+    return results
 
 def inference_segmentor(model, imgs):
     """Inference image(s) with the segmentor.
