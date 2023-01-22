@@ -38,6 +38,10 @@ class Compose(object):
     def __repr__(self):
         format_string = self.__class__.__name__ + '('
         for t in self.transforms:
-            format_string += f'\n    {t}'
+            str_ = t.__repr__()
+            if 'Compose(' in str_:
+                str_ = str_.replace('\n', '\n    ')
+            format_string += '\n'
+            format_string += f'    {str_}'
         format_string += '\n)'
         return format_string
