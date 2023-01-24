@@ -15,15 +15,17 @@ from mmcv.runner import get_dist_info, init_dist
 from mmmtl import __version__
 from mmmtl.apis import init_random_seed, set_random_seed, train_model
 from mmmtl.datasets import build_dataset
-from mmmtl.models import build_classifier
-from mmmtl.utils import (auto_select_device, collect_env, get_root_logger,
+from mmmtl.models import build_mtlearner
+from mmmtl.utils import (get_device, collect_env, get_root_logger,
                          setup_multi_processes)
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a model')
     parser.add_argument('config', help='train config file path')
+    parser.add_argument('task', help='train task - segmnetation, classification or detection')
     parser.add_argument('--work-dir', help='the dir to save logs and models')
+    parser.add_argument(
+        '--load-from', help='the checkpoint file to load weights from')
     parser.add_argument(
         '--resume-from', help='the checkpoint file to resume from')
     parser.add_argument(
@@ -31,19 +33,6 @@ def parse_args():
         action='store_true',
         help='whether not to evaluate the checkpoint during training')
     group_gpus = parser.add_mutually_exclusive_group()
-    group_gpus.add_argument(
-        '--device', help='device used for training. (Deprecated)')
-    group_gpus.add_argument(
-        '--gpus',
-        type=int,
-        help='(Deprecated, please use --gpu-id) number of gpus to use '
-        '(only applicable to non-distributed training)')
-    group_gpus.add_argument(
-        '--gpu-ids',
-        type=int,
-        nargs='+',
-        help='(Deprecated, please use --gpu-id) ids of gpus to use '
-        '(only applicable to non-distributed training)')
     group_gpus.add_argument(
         '--gpu-id',
         type=int,
@@ -65,7 +54,7 @@ def parse_args():
         action='store_true',
         help='whether to set deterministic options for CUDNN backend.')
     parser.add_argument(
-        '--cfg-options',
+        '--cfg_options',
         nargs='+',
         action=DictAction,
         help='override some settings in the used config, the key-value pair '
@@ -86,12 +75,14 @@ def parse_args():
     parser.add_argument('--base-lr', type=float, default=None, metavar='LR',
                         help='learning rate (absolute lr)')
     parser.add_argument('--local_rank', type=int, default=0)
+    parser.add_argument(
+        '--auto-scale-lr',
+        action='store_true',
+        help='enable automatically scaling LR.')
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
-
     return args
-
 
 def main():
     args = parse_args()
@@ -101,12 +92,29 @@ def main():
         cfg.merge_from_dict(args.cfg_options)
 
     # cfg.optimizer.lr = cfg.optimizer.lr * 
+    if args.task is None:
+        cfg.task="classification"
+    else:
+        cfg.task=args.task
+    if args.auto_scale_lr:
+        if 'auto_scale_lr' in cfg and \
+                'enable' in cfg.auto_scale_lr and \
+                'base_batch_size' in cfg.auto_scale_lr:
+            cfg.auto_scale_lr.enable = True
+        else:
+            warnings.warn('Can not find "auto_scale_lr" or '
+                          '"auto_scale_lr.enable" or '
+                          '"auto_scale_lr.base_batch_size" in your'
+                          ' configuration file. Please update all the '
+                          'configuration files to mmdet >= 2.24.1.')
+
     # set multi-process settings
     setup_multi_processes(cfg)
 
     # set cudnn_benchmark
     if cfg.get('cudnn_benchmark', False):
         torch.backends.cudnn.benchmark = True
+
 
     # work_dir is determined in this priority: CLI > segment in file > filename
     if args.work_dir is not None:
@@ -118,21 +126,9 @@ def main():
                                 osp.splitext(osp.basename(args.config))[0])
     if args.resume_from is not None:
         cfg.resume_from = args.resume_from
-    if args.gpus is not None:
-        cfg.gpu_ids = range(1)
-        warnings.warn('`--gpus` is deprecated because we only support '
-                      'single GPU mode in non-distributed training. '
-                      'Use `gpus=1` now.')
-    if args.gpu_ids is not None:
-        cfg.gpu_ids = args.gpu_ids[0:1]
-        warnings.warn('`--gpu-ids` is deprecated, please use `--gpu-id`. '
-                      'Because we only support single GPU mode in '
-                      'non-distributed training. Use the first GPU '
-                      'in `gpu_ids` now.')
-    if args.gpus is None and args.gpu_ids is None:
-        cfg.gpu_ids = [args.gpu_id]
-
     cfg.auto_resume = args.auto_resume
+    
+    cfg.gpu_ids = [args.gpu_id]
 
     if args.ipu_replicas is not None:
         cfg.ipu_replicas = args.ipu_replicas
@@ -176,9 +172,9 @@ def main():
     # log some basic info
     logger.info(f'Distributed training: {distributed}')
     logger.info(f'Config:\n{cfg.pretty_text}')
-
+    meta['config'] = cfg.pretty_text
     # set random seeds
-    cfg.device = args.device or auto_select_device()
+    cfg.device = get_device()
     seed = init_random_seed(args.seed, device=cfg.device)
     seed = seed + dist.get_rank() if args.diff_seed else seed
     logger.info(f'Set random seed to {seed}, '
@@ -186,8 +182,9 @@ def main():
     set_random_seed(seed, deterministic=args.deterministic)
     cfg.seed = seed
     meta['seed'] = seed
+    meta['exp_name'] = osp.basename(args.config)
 
-    model = build_classifier(cfg.model)
+    model = build_mtlearner(cfg.model)
     model.init_weights()
 
     datasets = [build_dataset(cfg.data.train)]
@@ -212,8 +209,8 @@ def main():
         distributed=distributed,
         validate=(not args.no_validate),
         timestamp=timestamp,
-        device=cfg.device,
-        meta=meta)
+        meta=meta
+    )
 
 
 if __name__ == '__main__':
