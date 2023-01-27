@@ -14,7 +14,19 @@ from .compose import Compose
 
 # Default hyperparameters for all Ops
 _HPARAMS_DEFAULT = dict(pad_val=128)
+_MAX_LEVEL = 10
+CLASSIFICATION="classification"
+SEGMENTATION='segmentation'
+DETECTION="detection"
 
+def level_to_value(level, max_value):
+    """Map from level to values based on max_value."""
+    return (level / _MAX_LEVEL) * max_value
+
+
+def enhance_level_to_value(level, a=1.8, b=0.1):
+    """Map from level to values."""
+    return (level / _MAX_LEVEL) * a + b
 
 def random_negative(value, random_negative_prob):
     """Randomly negate value based on random_negative_prob."""
@@ -41,24 +53,6 @@ def merge_hparams(policy: dict, hparams: dict):
         if key in inspect.getfullargspec(op.__init__).args:
             policy[key] = value
     return policy
-
-
-_MAX_LEVEL = 10
-
-
-def level_to_value(level, max_value):
-    """Map from level to values based on max_value."""
-    return (level / _MAX_LEVEL) * max_value
-
-
-def enhance_level_to_value(level, a=1.8, b=0.1):
-    """Map from level to values."""
-    return (level / _MAX_LEVEL) * a + b
-
-
-def random_negative(value, random_negative_prob):
-    """Randomly negate value based on random_negative_prob."""
-    return -value if np.random.rand() < random_negative_prob else value
 
 
 def bbox2fields():
@@ -96,7 +90,7 @@ class AutoAugment(object):
             are not set in policy dicts. Defaults to use _HPARAMS_DEFAULT.
     """
 
-    def __init__(self, policies, hparams=_HPARAMS_DEFAULT):
+    def __init__(self, policies, task=CLASSIFICATION,hparams=_HPARAMS_DEFAULT):
         assert isinstance(policies, list) and len(policies) > 0, \
             'Policies must be a non-empty list.'
         for policy in policies:
@@ -108,13 +102,20 @@ class AutoAugment(object):
                     ' "type".'
 
         self.hparams = hparams
+        self.task=task
         policies = copy.deepcopy(policies)
-        self.policies = []
-        for sub in policies:
-            merged_sub = [merge_hparams(policy, hparams) for policy in sub]
-            self.policies.append(merged_sub)
+        if self.task==DETECTION:
+            self.policies_detector=policies
+            self.transforms = [Compose(policy) for policy in self.policies_detector]
 
-        self.sub_policy = [Compose(policy) for policy in self.policies]
+        else:
+            self.policies = []
+            for sub in policies:
+                merged_sub = [merge_hparams(policy, hparams) for policy in sub]
+                self.policies.append(merged_sub)
+
+            self.sub_policy = [Compose(policy) for policy in self.policies]
+        
 
     def __call__(self, results):
         sub_policy = random.choice(self.sub_policy)

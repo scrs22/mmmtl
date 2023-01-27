@@ -8,7 +8,9 @@ from mmcv.parallel import DataContainer as DC
 from PIL import Image
 
 from ..builder import PIPELINES
-
+CLASSIFICATION="classification"
+SEGMENTATION='segmentation'
+DETECTION="detection"
 
 def to_tensor(data):
     """Convert objects of various python types to :obj:`torch.Tensor`.
@@ -51,8 +53,9 @@ class ToTensor(object):
 @PIPELINES.register_module()
 class ImageToTensor(object):
 
-    def __init__(self, keys):
+    def __init__(self, keys,task=CLASSIFICATION):
         self.keys = keys
+        self.task=task
 
     def __call__(self, results):
         for key in self.keys:
@@ -60,6 +63,9 @@ class ImageToTensor(object):
             if len(img.shape) < 3:
                 img = np.expand_dims(img, -1)
             results[key] = to_tensor(img.transpose(2, 0, 1))
+            if self.task==DETECTION:
+                results[key] = to_tensor(img).permute(2, 0, 1).contiguous()
+        
         return results
 
     def __repr__(self):

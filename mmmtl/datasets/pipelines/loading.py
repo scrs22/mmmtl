@@ -3,7 +3,7 @@ import os.path as osp
 
 import mmcv
 import numpy as np
-
+import pycocotools.mask as maskUtils
 from mmmtl.core import BitmapMasks, PolygonMasks
 from ..builder import PIPELINES
 
@@ -11,6 +11,10 @@ try:
     from panopticapi.utils import rgb2id
 except ImportError:
     rgb2id = None
+
+CLASSIFICATION="classification"
+SEGMENTATION='segmentation'
+DETECTION="detection"
 
 @PIPELINES.register_module()
 class LoadImageFromFile(object):
@@ -37,13 +41,17 @@ class LoadImageFromFile(object):
     def __init__(self,
                  to_float32=False,
                  color_type='color',
+                 channel_order='bgr',
                  file_client_args=dict(backend='disk'),
-                 imdecode_backend='cv2'):
+                 imdecode_backend='cv2',
+                 task=CLASSIFICATION):
         self.to_float32 = to_float32
         self.color_type = color_type
         self.file_client_args = file_client_args.copy()
         self.file_client = None
         self.imdecode_backend = imdecode_backend
+        self.channel_order='bgr'
+        self.task=task
 
     def __call__(self, results):
         """Call functions to load image and get image meta information.
@@ -64,8 +72,13 @@ class LoadImageFromFile(object):
         else:
             filename = results['img_info']['filename']
         img_bytes = self.file_client.get(filename)
-        img = mmcv.imfrombytes(
-            img_bytes, flag=self.color_type, backend=self.imdecode_backend)
+        if self.task==CLASSIFICATION:
+            img = mmcv.imfrombytes(img_bytes, flag=self.color_type)
+        if self.task==DETECTION:
+            img = mmcv.imfrombytes(img_bytes, flag=self.color_type, channel_order=self.channel_order)
+        else:
+            img = mmcv.imfrombytes(img_bytes, flag=self.color_type, backend=self.imdecode_backend)
+        
         if self.to_float32:
             img = img.astype(np.float32)
 
@@ -75,20 +88,29 @@ class LoadImageFromFile(object):
         results['img_shape'] = img.shape
         results['ori_shape'] = img.shape
         # Set initial values for default meta_keys
-        results['pad_shape'] = img.shape
-        results['scale_factor'] = 1.0
-        num_channels = 1 if len(img.shape) < 3 else img.shape[2]
-        results['img_norm_cfg'] = dict(
-            mean=np.zeros(num_channels, dtype=np.float32),
-            std=np.ones(num_channels, dtype=np.float32),
-            to_rgb=False)
+        if self.task==SEGMENTATION:
+            results['pad_shape'] = img.shape
+            results['scale_factor'] = 1.0
+        if self.task != DETECTION:
+            num_channels = 1 if len(img.shape) < 3 else img.shape[2]
+            results['img_norm_cfg'] = dict(
+                mean=np.zeros(num_channels, dtype=np.float32),
+                std=np.ones(num_channels, dtype=np.float32),
+                to_rgb=False)
         return results
 
     def __repr__(self):
         repr_str = self.__class__.__name__
         repr_str += f'(to_float32={self.to_float32},'
         repr_str += f"color_type='{self.color_type}',"
-        repr_str += f"imdecode_backend='{self.imdecode_backend}')"
+        
+        if self.task==DETECTION:
+              f"channel_order='{self.channel_order}', "
+        if self.task==SEGMENTATION:
+            repr_str += f"imdecode_backend='{self.imdecode_backend}')"
+        else:
+            repr_str += f'file_client_args={self.file_client_args}'
+
         return repr_str
 
 
@@ -208,7 +230,7 @@ class LoadMultiChannelImageFromFiles:
 
 
 @PIPELINES.register_module()
-class LoadAnnotationsSeg(object):
+class LoadAnnotations(object):
     """Load annotations for semantic segmentation.
 
     Args:
@@ -220,68 +242,7 @@ class LoadAnnotationsSeg(object):
             Defaults to ``dict(backend='disk')``.
         imdecode_backend (str): Backend for :func:`mmcv.imdecode`. Default:
             'pillow'
-    """
 
-    def __init__(self,
-                 reduce_zero_label=False,
-                 file_client_args=dict(backend='disk'),
-                 imdecode_backend='pillow'):
-        self.reduce_zero_label = reduce_zero_label
-        self.file_client_args = file_client_args.copy()
-        self.file_client = None
-        self.imdecode_backend = imdecode_backend
-
-    def __call__(self, results):
-        """Call function to load multiple types annotations.
-
-        Args:
-            results (dict): Result dict from :obj:`mmmtl.CustomDataset`.
-
-        Returns:
-            dict: The dict contains loaded semantic segmentation annotations.
-        """
-
-        if self.file_client is None:
-            self.file_client = mmcv.FileClient(**self.file_client_args)
-
-        if results.get('seg_prefix', None) is not None:
-            filename = osp.join(results['seg_prefix'],
-                                results['ann_info']['seg_map'])
-        else:
-            filename = results['ann_info']['seg_map']
-        img_bytes = self.file_client.get(filename)
-        gt_semantic_seg = mmcv.imfrombytes(
-            img_bytes, flag='unchanged',
-            backend=self.imdecode_backend).squeeze().astype(np.uint8)
-        # modify if custom classes
-        if results.get('label_map', None) is not None:
-            # Add deep copy to solve bug of repeatedly
-            # replace `gt_semantic_seg`, which is reported in
-            # https://github.com/open-mmlab/mmmtlmentation/pull/1445/
-            gt_semantic_seg_copy = gt_semantic_seg.copy()
-            for old_id, new_id in results['label_map'].items():
-                gt_semantic_seg[gt_semantic_seg_copy == old_id] = new_id
-        # reduce zero_label
-        if self.reduce_zero_label:
-            # avoid using underflow conversion
-            gt_semantic_seg[gt_semantic_seg == 0] = 255
-            gt_semantic_seg = gt_semantic_seg - 1
-            gt_semantic_seg[gt_semantic_seg == 254] = 255
-        results['gt_semantic_seg'] = gt_semantic_seg
-        results['seg_fields'].append('gt_semantic_seg')
-        return results
-
-    def __repr__(self):
-        repr_str = self.__class__.__name__
-        repr_str += f'(reduce_zero_label={self.reduce_zero_label},'
-        repr_str += f"imdecode_backend='{self.imdecode_backend}')"
-        return repr_str
-
-@PIPELINES.register_module()
-class LoadAnnotationsDet:
-    """Load multiple types of annotations.
-
-    Args:
         with_bbox (bool): Whether to parse and load the bbox annotation.
              Default: True.
         with_label (bool): Whether to parse and load the label annotation.
@@ -295,27 +256,97 @@ class LoadAnnotationsDet:
         denorm_bbox (bool): Whether to convert bbox from relative value to
             absolute value. Only used in OpenImage Dataset.
             Default: False.
-        file_client_args (dict): Arguments to instantiate a FileClient.
-            See :class:`mmcv.fileio.FileClient` for details.
-            Defaults to ``dict(backend='disk')``.
     """
 
     def __init__(self,
+                 reduce_zero_label=False,
+                 file_client_args=dict(backend='disk'),
+                 imdecode_backend='pillow',
                  with_bbox=True,
                  with_label=True,
                  with_mask=False,
                  with_seg=False,
                  poly2mask=True,
                  denorm_bbox=False,
-                 file_client_args=dict(backend='disk')):
+                 task=DETECTION):
+        self.reduce_zero_label = reduce_zero_label
+        self.file_client_args = file_client_args.copy()
+        self.file_client = None
+        self.imdecode_backend = imdecode_backend
         self.with_bbox = with_bbox
         self.with_label = with_label
         self.with_mask = with_mask
         self.with_seg = with_seg
         self.poly2mask = poly2mask
         self.denorm_bbox = denorm_bbox
-        self.file_client_args = file_client_args.copy()
-        self.file_client = None
+        self.task=task
+    
+
+    def __call__(self, results):
+        """Call function to load multiple types annotations.
+
+        Args:
+            results (dict): Result dict from :obj:`mmmtl.CustomDataset`.
+
+        Returns:
+            dict: The dict contains loaded semantic segmentation annotations.
+        """
+        if self.task==SEGMENTATION:
+            if self.file_client is None:
+                self.file_client = mmcv.FileClient(**self.file_client_args)
+
+            if results.get('seg_prefix', None) is not None:
+                filename = osp.join(results['seg_prefix'],
+                                    results['ann_info']['seg_map'])
+            else:
+                filename = results['ann_info']['seg_map']
+            img_bytes = self.file_client.get(filename)
+            gt_semantic_seg = mmcv.imfrombytes(
+                img_bytes, flag='unchanged',
+                backend=self.imdecode_backend).squeeze().astype(np.uint8)
+            # modify if custom classes
+            if results.get('label_map', None) is not None:
+                # Add deep copy to solve bug of repeatedly
+                # replace `gt_semantic_seg`, which is reported in
+                # https://github.com/open-mmlab/mmmtlmentation/pull/1445/
+                gt_semantic_seg_copy = gt_semantic_seg.copy()
+                for old_id, new_id in results['label_map'].items():
+                    gt_semantic_seg[gt_semantic_seg_copy == old_id] = new_id
+            # reduce zero_label
+            if self.reduce_zero_label:
+                # avoid using underflow conversion
+                gt_semantic_seg[gt_semantic_seg == 0] = 255
+                gt_semantic_seg = gt_semantic_seg - 1
+                gt_semantic_seg[gt_semantic_seg == 254] = 255
+            results['gt_semantic_seg'] = gt_semantic_seg
+            results['seg_fields'].append('gt_semantic_seg')
+            return results
+        else:
+            if self.with_bbox:
+                results = self._load_bboxes(results)
+                if results is None:
+                    return None
+            if self.with_label:
+                results = self._load_labels(results)
+            if self.with_mask:
+                results = self._load_masks(results)
+            if self.with_seg:
+                results = self._load_semantic_seg(results)
+            return results
+
+    def __repr__(self):
+        repr_str = self.__class__.__name__
+        if self.task==SEGMENTATION:
+            repr_str += f'(reduce_zero_label={self.reduce_zero_label},'
+            repr_str += f"imdecode_backend='{self.imdecode_backend}')"
+            return repr_str
+        repr_str += f'(with_bbox={self.with_bbox}, '
+        repr_str += f'with_label={self.with_label}, '
+        repr_str += f'with_mask={self.with_mask}, '
+        repr_str += f'with_seg={self.with_seg}, '
+        repr_str += f'poly2mask={self.poly2mask}, '
+        repr_str += f'file_client_args={self.file_client_args})'
+        return repr_str
 
     def _load_bboxes(self, results):
         """Private function to load bounding box annotations.
@@ -451,39 +482,6 @@ class LoadAnnotationsDet:
             img_bytes, flag='unchanged').squeeze()
         results['seg_fields'].append('gt_semantic_seg')
         return results
-
-    def __call__(self, results):
-        """Call function to load multiple types annotations.
-
-        Args:
-            results (dict): Result dict from :obj:`mmmtl.CustomDataset`.
-
-        Returns:
-            dict: The dict contains loaded bounding box, label, mask and
-                semantic segmentation annotations.
-        """
-
-        if self.with_bbox:
-            results = self._load_bboxes(results)
-            if results is None:
-                return None
-        if self.with_label:
-            results = self._load_labels(results)
-        if self.with_mask:
-            results = self._load_masks(results)
-        if self.with_seg:
-            results = self._load_semantic_seg(results)
-        return results
-
-    def __repr__(self):
-        repr_str = self.__class__.__name__
-        repr_str += f'(with_bbox={self.with_bbox}, '
-        repr_str += f'with_label={self.with_label}, '
-        repr_str += f'with_mask={self.with_mask}, '
-        repr_str += f'with_seg={self.with_seg}, '
-        repr_str += f'poly2mask={self.poly2mask}, '
-        repr_str += f'file_client_args={self.file_client_args})'
-        return repr_str
 
 
 @PIPELINES.register_module()

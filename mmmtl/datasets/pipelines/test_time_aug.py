@@ -5,7 +5,9 @@ import mmcv
 
 from ..builder import PIPELINES
 from .compose import Compose
-
+CLASSIFICATION="classification"
+SEGMENTATION='segmentation'
+DETECTION="detection"
 
 @PIPELINES.register_module()
 class MultiScaleFlipAug(object):
@@ -56,7 +58,9 @@ class MultiScaleFlipAug(object):
                  img_scale,
                  img_ratios=None,
                  flip=False,
-                 flip_direction='horizontal'):
+                 flip_direction='horizontal',
+                 scale_factor=None,
+                 task= DETECTION):
         if flip:
             trans_index = {
                 key['type']: index
@@ -65,31 +69,46 @@ class MultiScaleFlipAug(object):
             if 'RandomFlip' in trans_index and 'Pad' in trans_index:
                 assert trans_index['RandomFlip'] < trans_index['Pad'], \
                     'Pad must be executed after RandomFlip when flip is True'
+
         self.transforms = Compose(transforms)
-        if img_ratios is not None:
-            img_ratios = img_ratios if isinstance(img_ratios,
-                                                  list) else [img_ratios]
-            assert mmcv.is_list_of(img_ratios, float)
-        if img_scale is None:
-            # mode 1: given img_scale=None and a range of image ratio
-            self.img_scale = None
-            assert mmcv.is_list_of(img_ratios, float)
-        elif isinstance(img_scale, tuple) and mmcv.is_list_of(
-                img_ratios, float):
-            assert len(img_scale) == 2
-            # mode 2: given a scale and a range of image ratio
-            self.img_scale = [(int(img_scale[0] * ratio),
-                               int(img_scale[1] * ratio))
-                              for ratio in img_ratios]
-        else:
-            # mode 3: given multiple scales
+        if img_scale is not None:
             self.img_scale = img_scale if isinstance(img_scale,
                                                      list) else [img_scale]
+            self.scale_key = 'scale'
+            assert mmcv.is_list_of(self.img_scale, tuple)
+        if self.task==SEGMENTATION:
+            if img_ratios is not None:
+                img_ratios = img_ratios if isinstance(img_ratios,list) else [img_ratios]
+                assert mmcv.is_list_of(img_ratios, float)
+            if img_scale is None:
+                # mode 1: given img_scale=None and a range of image ratio
+                self.img_scale = None
+                assert mmcv.is_list_of(img_ratios, float)
+            elif isinstance(img_scale, tuple) and mmcv.is_list_of(
+                    img_ratios, float):
+                assert len(img_scale) == 2
+                # mode 2: given a scale and a range of image ratio
+                self.img_scale = [(int(img_scale[0] * ratio),
+                                  int(img_scale[1] * ratio))
+                                  for ratio in img_ratios]
+            else:
+                # mode 3: given multiple scales
+                self.img_scale = img_scale if isinstance(img_scale,
+                                                        list) else [img_scale]
+        else:
+            if img_scale is not None:
+                self.img_scale = img_scale if isinstance(img_scale, list) else [img_scale]
+                self.scale_key = 'scale'
+                assert mmcv.is_list_of(self.img_scale, tuple)
+            else:
+                self.img_scale = scale_factor if isinstance(scale_factor, list) else [scale_factor]
+                self.scale_key = 'scale_factor'
+
+        
         assert mmcv.is_list_of(self.img_scale, tuple) or self.img_scale is None
         self.flip = flip
         self.img_ratios = img_ratios
-        self.flip_direction = flip_direction if isinstance(
-            flip_direction, list) else [flip_direction]
+        self.flip_direction = flip_direction if isinstance(flip_direction, list) else [flip_direction]
         assert mmcv.is_list_of(self.flip_direction, str)
         if not self.flip and self.flip_direction != ['horizontal']:
             warnings.warn(
@@ -111,18 +130,32 @@ class MultiScaleFlipAug(object):
         """
 
         aug_data = []
-        if self.img_scale is None and mmcv.is_list_of(self.img_ratios, float):
-            h, w = results['img'].shape[:2]
-            img_scale = [(int(w * ratio), int(h * ratio))
-                         for ratio in self.img_ratios]
+        if self.task==SEGMENTATION:
+            if self.img_scale is None and mmcv.is_list_of(self.img_ratios, float):
+                h, w = results['img'].shape[:2]
+                img_scale = [(int(w * ratio), int(h * ratio))
+                            for ratio in self.img_ratios]
+            else:
+                img_scale = self.img_scale
+            flip_aug = [False, True] if self.flip else [False]
+            for scale in img_scale:
+                for flip in flip_aug:
+                    for direction in self.flip_direction:
+                        _results = results.copy()
+                        _results['scale'] = scale
+                        _results['flip'] = flip
+                        _results['flip_direction'] = direction
+                        data = self.transforms(_results)
+                        aug_data.append(data)
         else:
-            img_scale = self.img_scale
-        flip_aug = [False, True] if self.flip else [False]
-        for scale in img_scale:
-            for flip in flip_aug:
-                for direction in self.flip_direction:
+            flip_args = [(False, None)]
+            if self.flip:
+                flip_args += [(True, direction)
+                              for direction in self.flip_direction]
+            for scale in self.img_scale:
+                for flip, direction in flip_args:
                     _results = results.copy()
-                    _results['scale'] = scale
+                    _results[self.scale_key] = scale
                     _results['flip'] = flip
                     _results['flip_direction'] = direction
                     data = self.transforms(_results)
