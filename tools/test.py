@@ -11,10 +11,10 @@ from mmcv import DictAction
 from mmcv.runner import (get_dist_info, init_dist, load_checkpoint,
                          wrap_fp16_model)
 
-from mmcls.apis import multi_gpu_test, single_gpu_test
-from mmcls.datasets import build_dataloader, build_dataset
-from mmcls.models import build_classifier
-from mmcls.utils import (auto_select_device, get_root_logger,
+from mmmtl.apis import multi_gpu_test, single_gpu_test
+from mmmtl.datasets import build_dataloader, build_dataset
+from mmmtl.models import build_classifier
+from mmmtl.utils import (auto_select_device, get_root_logger,
                          setup_multi_processes, wrap_distributed_model,
                          wrap_non_distributed_model)
 

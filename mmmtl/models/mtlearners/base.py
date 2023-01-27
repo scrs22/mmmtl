@@ -9,22 +9,20 @@ import torch.distributed as dist
 from mmcv.runner import BaseModule, auto_fp16
 
 from mmmtl.core.visualization import imshow_infos
+from mmmtl.model.mtlearners.classifiers import BaseClassifier
+from mmmtl.model.mtlearners.segmentors import BaseSegmentor
+from mmmtl.model.mtlearners.detectors import BaseDetector
 
-
-class BaseMTLearner(BaseModule, metaclass=ABCMeta):
+class BaseMTLearner(BaseDetector,BaseSegmentor,BaseClassifier,metaclass=ABCMeta):
     """Base class for MTLearners."""
 
     def __init__(self, init_cfg=None):
         super(BaseMTLearner, self).__init__(init_cfg)
         self.fp16_enabled = False
 
-    # @property
-    # def with_neck(self):
-    #     return hasattr(self, 'neck') and self.neck is not None
-
-    # @property
-    # def with_head(self):
-    #     return hasattr(self, 'head') and self.head is not None
+    @property
+    def with_neck(self):
+        return hasattr(self, 'neck') and self.neck is not None
 
     @abstractmethod
     def extract_feat(self, imgs, stage=None):
@@ -52,7 +50,10 @@ class BaseMTLearner(BaseModule, metaclass=ABCMeta):
         # NOTE the batched image size information may be useful, e.g.
         # in DETR, this is needed for the construction of masks, which is
         # then used for the transformer_head.
+        if not img_metas or len(img_meta)==0:
+            pass
         batch_input_shape = tuple(imgs[0].size()[-2:])
+        
         for img_meta in img_metas:
             img_meta['batch_input_shape'] = batch_input_shape
 
@@ -60,7 +61,7 @@ class BaseMTLearner(BaseModule, metaclass=ABCMeta):
     def simple_test(self, img, img_meta, **kwargs):
         pass
 
-    def forward_test(self, imgs, img_metas, **kwargs):
+    def forward_test(self, imgs, img_metas=None, **kwargs):
         """
         Args:
             imgs (List[Tensor]): the outer list indicates test-time

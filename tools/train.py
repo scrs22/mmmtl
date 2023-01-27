@@ -13,7 +13,7 @@ from mmcv.utils import Config, DictAction
 from mmcv.runner import get_dist_info, init_dist
 
 from mmmtl import __version__
-from mmmtl.apis import init_random_seed, set_random_seed, train_model
+from mmmtl.apis import init_random_seed, set_random_seed, train_mtlearner
 from mmmtl.datasets import build_dataset
 from mmmtl.models import build_mtlearner
 from mmmtl.utils import (get_device, collect_env, get_root_logger,
@@ -202,14 +202,15 @@ def main():
             CLASSES=datasets[0].CLASSES))
 
     # add an attribute for visualization convenience
-    train_model(
+    train_mtlearner(
         model,
         datasets,
         cfg,
         distributed=distributed,
         validate=(not args.no_validate),
         timestamp=timestamp,
-        meta=meta
+        meta=meta,
+        task=args.task,
     )
 
 

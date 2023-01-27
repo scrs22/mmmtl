@@ -13,11 +13,11 @@ import torch
 from mmcv import Config, DictAction
 from mmcv.runner import get_dist_info, init_dist
 
-from mmcls import __version__
-from mmcls.apis import init_random_seed, set_random_seed, train_model
-from mmcls.datasets import build_dataset
-from mmcls.models import build_classifier
-from mmcls.utils import collect_env, get_root_logger, load_json_log
+from mmmtl import __version__
+from mmmtl.apis import init_random_seed, set_random_seed, train_mtlearner
+from mmmtl.datasets import build_dataset
+from mmmtl.models import build_mtlearner
+from mmmtl.utils import collect_env, get_root_logger, load_json_log
 
 TEST_METRICS = ('precision', 'recall', 'f1_score', 'support', 'mAP', 'CP',
                 'CR', 'CF1', 'OP', 'OR', 'OF1', 'accuracy')
@@ -180,7 +180,7 @@ def train_single_fold(args, cfg, fold, distributed, seed):
     cfg.seed = seed + fold
     meta['seed'] = seed + fold
 
-    model = build_classifier(cfg.model)
+    model = build_mtlearner(cfg.model)
     model.init_weights()
 
     datasets = [build_dataset(cfg.data.train)]
@@ -195,7 +195,7 @@ def train_single_fold(args, cfg, fold, distributed, seed):
             CLASSES=datasets[0].CLASSES,
             kfold=dict(fold=fold, num_splits=args.num_splits)))
     # add an attribute for visualization convenience
-    train_model(
+    train_mtlearner(
         model,
         datasets,
         cfg,
