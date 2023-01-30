@@ -1,4 +1,6 @@
-albumentations>=0.3.2 --no-binary qudida,albumentations
+cityscapesscripts
+imagecorruptions
+scikit-learn
 colorama
 requests
 rich
