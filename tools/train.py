@@ -17,12 +17,12 @@ from mmmtl.apis import init_random_seed, set_random_seed, train_mtlearner
 from mmmtl.datasets import build_dataset
 from mmmtl.models import build_mtlearner
 from mmmtl.utils import (get_device, collect_env, get_root_logger,
-                         setup_multi_processes)
+                         setup_multi_processes,rfnext_init_model)
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a model')
     parser.add_argument('config', help='train config file path')
-    parser.add_argument('task', help='train task - segmnetation, classification or detection')
+    parser.add_argument('--task', help='train task - segmnetation, classification or detection')
     parser.add_argument('--work-dir', help='the dir to save logs and models')
     parser.add_argument(
         '--load-from', help='the checkpoint file to load weights from')
@@ -91,11 +91,6 @@ def main():
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
 
-    # cfg.optimizer.lr = cfg.optimizer.lr * 
-    if args.task is None:
-        cfg.task="classification"
-    else:
-        cfg.task=args.task
     if args.auto_scale_lr:
         if 'auto_scale_lr' in cfg and \
                 'enable' in cfg.auto_scale_lr and \
@@ -106,7 +101,7 @@ def main():
                           '"auto_scale_lr.enable" or '
                           '"auto_scale_lr.base_batch_size" in your'
                           ' configuration file. Please update all the '
-                          'configuration files to mmdet >= 2.24.1.')
+                          'configuration files to mmmtl >= 2.24.1.')
 
     # set multi-process settings
     setup_multi_processes(cfg)
@@ -184,16 +179,18 @@ def main():
     meta['seed'] = seed
     meta['exp_name'] = osp.basename(args.config)
 
-    model = build_mtlearner(cfg.model)
+    model = build_mtlearner(cfg.model,train_cfg=cfg.get('train_cfg'),
+        test_cfg=cfg.get('test_cfg'))
     model.init_weights()
-
-    datasets = [build_dataset(cfg.data.train)]
+     # init rfnext if 'RFSearchHook' is defined in cfg
+    rfnext_init_model(model, cfg=cfg)
+    datasets = [build_dataset(cfg.data.train,task=args.task)]
     if len(cfg.workflow) == 2: # need validation
         val_dataset = copy.deepcopy(cfg.data.val)
         val_dataset.pipeline = cfg.data.train.pipeline
-        datasets.append(build_dataset(val_dataset))
+        datasets.append(build_dataset(val_dataset,task=args.task))
 
-    # save mmcls version, config file content and class names in
+    # save mmmtl version, config file content and class names in
     # runner as meta data
     meta.update(
         dict(

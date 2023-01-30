@@ -1,13 +1,21 @@
-# Copyright (c) OpenMMLab. All rights reserved.
 import os.path as osp
 
+import importlib
+import sys
+import warnings
+import pycocotools.mask as mask_util
 import numpy as np
+import mmcv
 from mmcv.runner import HOOKS, BaseRunner
+from mmcv.utils import digit_version
 from mmcv.runner.dist_utils import get_dist_info, master_only
 from mmcv.runner.hooks.checkpoint import CheckpointHook
 from mmcv.runner.hooks.evaluation import DistEvalHook, EvalHook
 from mmcv.runner.hooks.logger.wandb import WandbLoggerHook
 
+from mmmtl.core import DistEvalHookDet, EvalHookDet
+from mmmtl.core import DistEvalHookSeg, EvalHookSeg
+from mmmtl.core.mask.structures import polygon_to_bitmap
 
 @HOOKS.register_module()
 class MMClsWandbHook(WandbLoggerHook):
@@ -125,7 +133,7 @@ class MMClsWandbHook(WandbLoggerHook):
                 self.log_checkpoint_metadata = False
                 runner.logger.warning(
                     'To log evaluation or checkpoint metadata in '
-                    'MMClsWandbHook, `EvalHook` or `DistEvalHook` in mmmtl '
+                    'MMClsWandbHook, `EvalHook` or `DistEvalHook` in mmcls '
                     'is required, please check whether the validation '
                     'is enabled.')
             else:
@@ -271,7 +279,7 @@ class MMClsWandbHook(WandbLoggerHook):
 
     def _add_ground_truth(self):
         # Get image loading pipeline
-        from mmmtl.datasets.pipelines import LoadImageFromFile
+        from mmdet.datasets.pipelines import LoadImageFromFile
         img_loader = None
         for t in self.val_dataset.pipeline.transforms:
             if isinstance(t, LoadImageFromFile):
@@ -343,36 +351,16 @@ class MMClsWandbHook(WandbLoggerHook):
         self.wandb.run.log_artifact(pred_artifact, aliases=aliases)
 
 
-
-# Copyright (c) OpenMMLab. All rights reserved.
-import importlib
-import os.path as osp
-import sys
-import warnings
-
-import mmcv
-import numpy as np
-import pycocotools.mask as mask_util
-from mmcv.runner import HOOKS
-from mmcv.runner.dist_utils import master_only
-from mmcv.runner.hooks.checkpoint import CheckpointHook
-from mmcv.runner.hooks.logger.wandb import WandbLoggerHook
-from mmcv.utils import digit_version
-
-from ...core import DistEvalHook, EvalHook
-from ...core.mask.structures import polygon_to_bitmap
-
-
 @HOOKS.register_module()
-class mmmtlWandbHook(WandbLoggerHook): #det
-    """Enhanced Wandb logger hook for mmmtlection.
+class MMDetWandbHook(WandbLoggerHook):
+    """Enhanced Wandb logger hook for MMDetection.
 
     Comparing with the :cls:`mmcv.runner.WandbLoggerHook`, this hook can not
     only automatically log all the metrics but also log the following extra
     information - saves model checkpoints as W&B Artifact, and
     logs model prediction as interactive W&B Tables.
 
-    - Metrics: The mmmtlWandbHook will automatically log training
+    - Metrics: The MMDetWandbHook will automatically log training
         and validation metrics along with system metrics (CPU/GPU).
 
     - Checkpointing: If `log_checkpoint` is True, the checkpoint saved at
@@ -386,20 +374,20 @@ class mmmtlWandbHook(WandbLoggerHook): #det
         checkpoint artifact, it will have a metadata associated with it.
         The metadata contains the evaluation metrics computed on validation
         data with that checkpoint along with the current epoch. It depends
-        on `EvalHook` whose priority is more than mmmtlWandbHook.
+        on `EvalHook` whose priority is more than MMDetWandbHook.
 
-    - Evaluation: At every evaluation interval, the `mmmtlWandbHook` logs the
+    - Evaluation: At every evaluation interval, the `MMDetWandbHook` logs the
         model prediction as interactive W&B Tables. The number of samples
-        logged is given by `num_eval_images`. Currently, the `mmmtlWandbHook`
+        logged is given by `num_eval_images`. Currently, the `MMDetWandbHook`
         logs the predicted bounding boxes along with the ground truth at every
         evaluation interval. This depends on the `EvalHook` whose priority is
-        more than `mmmtlWandbHook`. Also note that the data is just logged once
+        more than `MMDetWandbHook`. Also note that the data is just logged once
         and subsequent evaluation tables uses reference to the logged data
         to save memory usage. Please refer to
         https://docs.wandb.ai/guides/data-vis to learn more about W&B Tables.
 
-    For more details check out W&B's mmmtlection docs:
-    https://docs.wandb.ai/guides/integrations/mmmtlection
+    For more details check out W&B's MMDetection docs:
+    https://docs.wandb.ai/guides/integrations/mmdetection
 
     ```
     Example:
@@ -407,7 +395,7 @@ class mmmtlWandbHook(WandbLoggerHook): #det
             ...
             hooks=[
                 ...,
-                dict(type='mmmtlWandbHook',
+                dict(type='MMDetWandbHook',
                      init_kwargs={
                          'entity': "YOUR_ENTITY",
                          'project': "YOUR_PROJECT_NAME"
@@ -446,7 +434,7 @@ class mmmtlWandbHook(WandbLoggerHook): #det
                  num_eval_images=100,
                  bbox_score_thr=0.3,
                  **kwargs):
-        super(mmmtlWandbHook, self).__init__(init_kwargs, interval, **kwargs)
+        super(MMDetWandbHook, self).__init__(init_kwargs, interval, **kwargs)
 
         self.log_checkpoint = log_checkpoint
         self.log_checkpoint_metadata = (
@@ -455,7 +443,7 @@ class mmmtlWandbHook(WandbLoggerHook): #det
         self.bbox_score_thr = bbox_score_thr
         self.log_evaluation = (num_eval_images > 0)
         self.ckpt_hook: CheckpointHook = None
-        self.eval_hook: EvalHook = None
+        self.eval_hook: EvalHookDet = None
 
     def import_wandb(self):
         try:
@@ -478,7 +466,7 @@ class mmmtlWandbHook(WandbLoggerHook): #det
 
     @master_only
     def before_run(self, runner):
-        super(mmmtlWandbHook, self).before_run(runner)
+        super(MMDetWandbHook, self).before_run(runner)
 
         # Save and Log config.
         if runner.meta is not None and runner.meta.get('exp_name',
@@ -495,7 +483,7 @@ class mmmtlWandbHook(WandbLoggerHook): #det
         for hook in runner.hooks:
             if isinstance(hook, CheckpointHook):
                 self.ckpt_hook = hook
-            if isinstance(hook, (EvalHook, DistEvalHook)):
+            if isinstance(hook, (EvalHookDet, DistEvalHookDet)):
                 self.eval_hook = hook
 
         # Check conditions to log checkpoint
@@ -504,7 +492,7 @@ class mmmtlWandbHook(WandbLoggerHook): #det
                 self.log_checkpoint = False
                 self.log_checkpoint_metadata = False
                 runner.logger.warning(
-                    'To log checkpoint in mmmtlWandbHook, `CheckpointHook` is'
+                    'To log checkpoint in MMDetWandbHook, `CheckpointHook` is'
                     'required, please check hooks in the runner.')
             else:
                 self.ckpt_interval = self.ckpt_hook.interval
@@ -516,7 +504,7 @@ class mmmtlWandbHook(WandbLoggerHook): #det
                 self.log_checkpoint_metadata = False
                 runner.logger.warning(
                     'To log evaluation or checkpoint metadata in '
-                    'mmmtlWandbHook, `EvalHook` or `DistEvalHook` in mmmtl '
+                    'MMDetWandbHook, `EvalHook` or `DistEvalHook` in mmdet '
                     'is required, please check whether the validation '
                     'is enabled.')
             else:
@@ -534,7 +522,7 @@ class mmmtlWandbHook(WandbLoggerHook): #det
         # Check conditions to log checkpoint metadata
         if self.log_checkpoint_metadata:
             assert self.ckpt_interval % self.eval_interval == 0, \
-                'To log checkpoint metadata in mmmtlWandbHook, the interval ' \
+                'To log checkpoint metadata in MMDetWandbHook, the interval ' \
                 f'of checkpoint saving ({self.ckpt_interval}) should be ' \
                 'divisible by the interval of evaluation ' \
                 f'({self.eval_interval}).'
@@ -550,7 +538,7 @@ class mmmtlWandbHook(WandbLoggerHook): #det
 
     @master_only
     def after_train_epoch(self, runner):
-        super(mmmtlWandbHook, self).after_train_epoch(runner)
+        super(MMDetWandbHook, self).after_train_epoch(runner)
 
         if not self.by_epoch:
             return
@@ -582,16 +570,16 @@ class mmmtlWandbHook(WandbLoggerHook): #det
             self._log_eval_table(runner.epoch + 1)
 
     # for the reason of this double-layered structure, refer to
-    # https://github.com/open-mmlab/mmmtlection/issues/8145#issuecomment-1345343076
+    # https://github.com/open-mmlab/mmdetection/issues/8145#issuecomment-1345343076
     def after_train_iter(self, runner):
         if self.get_mode(runner) == 'train':
             # An ugly patch. The iter-based eval hook will call the
             # `after_train_iter` method of all logger hooks before evaluation.
             # Use this trick to skip that call.
             # Don't call super method at first, it will clear the log_buffer
-            return super(mmmtlWandbHook, self).after_train_iter(runner)
+            return super(MMDetWandbHook, self).after_train_iter(runner)
         else:
-            super(mmmtlWandbHook, self).after_train_iter(runner)
+            super(MMDetWandbHook, self).after_train_iter(runner)
         self._after_train_iter(runner)
 
     @master_only
@@ -673,7 +661,7 @@ class mmmtlWandbHook(WandbLoggerHook): #det
 
     def _add_ground_truth(self, runner):
         # Get image loading pipeline
-        from mmmtl.datasets.pipelines import LoadImageFromFile
+        from mmdet.datasets.pipelines import LoadImageFromFile
         img_loader = None
         for t in self.val_dataset.pipeline.transforms:
             if isinstance(t, LoadImageFromFile):
@@ -939,29 +927,16 @@ class mmmtlWandbHook(WandbLoggerHook): #det
         self.wandb.run.log_artifact(pred_artifact, aliases=aliases)
 
 
-# Copyright (c) OpenMMLab. All rights reserved.
-import os.path as osp
-
-import mmcv
-import numpy as np
-from mmcv.runner import HOOKS
-from mmcv.runner.dist_utils import master_only
-from mmcv.runner.hooks.checkpoint import CheckpointHook
-from mmcv.runner.hooks.logger.wandb import WandbLoggerHook
-
-from ...core import DistEvalHook, EvalHook
-
-
 @HOOKS.register_module()
-class mmmtlWandbHookSeg(WandbLoggerHook):
-    """Enhanced Wandb logger hook for mmmtlmentation.
+class MMSegWandbHook(WandbLoggerHook):
+    """Enhanced Wandb logger hook for MMSegmentation.
 
     Comparing with the :cls:`mmcv.runner.WandbLoggerHook`, this hook can not
     only automatically log all the metrics but also log the following extra
     information - saves model checkpoints as W&B Artifact, and
     logs model prediction as interactive W&B Tables.
 
-    - Metrics: The mmmtlWandbHook will automatically log training
+    - Metrics: The MMSegWandbHook will automatically log training
       and validation metrics along with system metrics (CPU/GPU).
 
     - Checkpointing: If `log_checkpoint` is True, the checkpoint saved at
@@ -975,14 +950,14 @@ class mmmtlWandbHookSeg(WandbLoggerHook):
       checkpoint artifact, it will have a metadata associated with it.
       The metadata contains the evaluation metrics computed on validation
       data with that checkpoint along with the current epoch. It depends
-      on `EvalHook` whose priority is more than mmmtlWandbHook.
+      on `EvalHook` whose priority is more than MMSegWandbHook.
 
-    - Evaluation: At every evaluation interval, the `mmmtlWandbHook` logs the
+    - Evaluation: At every evaluation interval, the `MMSegWandbHook` logs the
       model prediction as interactive W&B Tables. The number of samples
-      logged is given by `num_eval_images`. Currently, the `mmmtlWandbHook`
+      logged is given by `num_eval_images`. Currently, the `MMSegWandbHook`
       logs the predicted segmentation masks along with the ground truth at
       every evaluation interval. This depends on the `EvalHook` whose
-      priority is more than `mmmtlWandbHook`. Also note that the data is just
+      priority is more than `MMSegWandbHook`. Also note that the data is just
       logged once and subsequent evaluation tables uses reference to the
       logged data to save memory usage. Please refer to
       https://docs.wandb.ai/guides/data-vis to learn more about W&B Tables.
@@ -993,7 +968,7 @@ class mmmtlWandbHookSeg(WandbLoggerHook):
             ...
             hooks=[
                 ...,
-                dict(type='mmmtlWandbHook',
+                dict(type='MMSegWandbHook',
                      init_kwargs={
                          'entity': "YOUR_ENTITY",
                          'project': "YOUR_PROJECT_NAME"
@@ -1031,7 +1006,7 @@ class mmmtlWandbHookSeg(WandbLoggerHook):
                  log_checkpoint_metadata=False,
                  num_eval_images=100,
                  **kwargs):
-        super(mmmtlWandbHook, self).__init__(init_kwargs, interval, **kwargs)
+        super(MMSegWandbHook, self).__init__(init_kwargs, interval, **kwargs)
 
         self.log_checkpoint = log_checkpoint
         self.log_checkpoint_metadata = (
@@ -1039,23 +1014,23 @@ class mmmtlWandbHookSeg(WandbLoggerHook):
         self.num_eval_images = num_eval_images
         self.log_evaluation = (num_eval_images > 0)
         self.ckpt_hook: CheckpointHook = None
-        self.eval_hook: EvalHook = None
+        self.eval_hook: EvalHookSeg = None
         self.test_fn = None
 
     @master_only
     def before_run(self, runner):
-        super(mmmtlWandbHook, self).before_run(runner)
+        super(MMSegWandbHook, self).before_run(runner)
 
         # Check if EvalHook and CheckpointHook are available.
         for hook in runner.hooks:
             if isinstance(hook, CheckpointHook):
                 self.ckpt_hook = hook
-            if isinstance(hook, EvalHook):
-                from mmmtl.apis import single_gpu_test
+            if isinstance(hook, EvalHookSeg):
+                from mmseg.apis import single_gpu_test
                 self.eval_hook = hook
                 self.test_fn = single_gpu_test
-            if isinstance(hook, DistEvalHook):
-                from mmmtl.apis import multi_gpu_test
+            if isinstance(hook, DistEvalHookSeg):
+                from mmseg.apis import multi_gpu_test
                 self.eval_hook = hook
                 self.test_fn = multi_gpu_test
 
@@ -1065,7 +1040,7 @@ class mmmtlWandbHookSeg(WandbLoggerHook):
                 self.log_checkpoint = False
                 self.log_checkpoint_metadata = False
                 runner.logger.warning(
-                    'To log checkpoint in mmmtlWandbHook, `CheckpointHook` is'
+                    'To log checkpoint in MMSegWandbHook, `CheckpointHook` is'
                     'required, please check hooks in the runner.')
             else:
                 self.ckpt_interval = self.ckpt_hook.interval
@@ -1077,7 +1052,7 @@ class mmmtlWandbHookSeg(WandbLoggerHook):
                 self.log_checkpoint_metadata = False
                 runner.logger.warning(
                     'To log evaluation or checkpoint metadata in '
-                    'mmmtlWandbHook, `EvalHook` or `DistEvalHook` in mmmtl '
+                    'MMSegWandbHook, `EvalHook` or `DistEvalHook` in mmseg '
                     'is required, please check whether the validation '
                     'is enabled.')
             else:
@@ -1095,7 +1070,7 @@ class mmmtlWandbHookSeg(WandbLoggerHook):
         # Check conditions to log checkpoint metadata
         if self.log_checkpoint_metadata:
             assert self.ckpt_interval % self.eval_interval == 0, \
-                'To log checkpoint metadata in mmmtlWandbHook, the interval ' \
+                'To log checkpoint metadata in MMSegWandbHook, the interval ' \
                 f'of checkpoint saving ({self.ckpt_interval}) should be ' \
                 'divisible by the interval of evaluation ' \
                 f'({self.eval_interval}).'
@@ -1110,16 +1085,16 @@ class mmmtlWandbHookSeg(WandbLoggerHook):
             self._log_data_table()
 
     # for the reason of this double-layered structure, refer to
-    # https://github.com/open-mmlab/mmmtlection/issues/8145#issuecomment-1345343076
+    # https://github.com/open-mmlab/mmdetection/issues/8145#issuecomment-1345343076
     def after_train_iter(self, runner):
         if self.get_mode(runner) == 'train':
             # An ugly patch. The iter-based eval hook will call the
             # `after_train_iter` method of all logger hooks before evaluation.
             # Use this trick to skip that call.
             # Don't call super method at first, it will clear the log_buffer
-            return super(mmmtlWandbHook, self).after_train_iter(runner)
+            return super(MMSegWandbHook, self).after_train_iter(runner)
         else:
-            super(mmmtlWandbHook, self).after_train_iter(runner)
+            super(MMSegWandbHook, self).after_train_iter(runner)
         self._after_train_iter(runner)
 
     @master_only
@@ -1192,7 +1167,7 @@ class mmmtlWandbHookSeg(WandbLoggerHook):
 
     def _add_ground_truth(self, runner):
         # Get image loading pipeline
-        from mmmtl.datasets.pipelines import LoadImageFromFile
+        from mmseg.datasets.pipelines import LoadImageFromFile
         img_loader = None
         for t in self.val_dataset.pipeline.transforms:
             if isinstance(t, LoadImageFromFile):
@@ -1309,4 +1284,3 @@ class mmmtlWandbHookSeg(WandbLoggerHook):
             f'run_{self.wandb.run.id}_pred', type='evaluation')
         pred_artifact.add(self.eval_table, 'eval_data')
         self.wandb.run.log_artifact(pred_artifact)
-

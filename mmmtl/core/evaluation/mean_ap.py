@@ -1,9 +1,20 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import numpy as np
 import torch
+from multiprocessing import Pool
+
+import mmcv
+import numpy as np
+from mmcv.utils import print_log
+from terminaltables import AsciiTable
+
+from .bbox_overlaps import bbox_overlaps
+from .class_names import get_classes
 
 
-def average_precision(pred, target):
+
+
+def average_precision_cls(pred, target):
     r"""Calculate the average precision for a single class.
 
     AP summarizes a precision-recall curve as the weighted mean of maximum
@@ -43,7 +54,7 @@ def average_precision(pred, target):
     return ap
 
 
-def mAP(pred, target):
+def mAP_cls(pred, target):
     """Calculate the mean average precision with respect of classes.
 
     Args:
@@ -69,25 +80,11 @@ def mAP(pred, target):
     num_classes = pred.shape[1]
     ap = np.zeros(num_classes)
     for k in range(num_classes):
-        ap[k] = average_precision(pred[:, k], target[:, k])
+        ap[k] = average_precision_cls(pred[:, k], target[:, k])
     mean_ap = ap.mean() * 100.0
     return mean_ap
 
-
-
-# Copyright (c) OpenMMLab. All rights reserved.
-from multiprocessing import Pool
-
-import mmcv
-import numpy as np
-from mmcv.utils import print_log
-from terminaltables import AsciiTable
-
-from .bbox_overlaps import bbox_overlaps
-from .class_names import get_classes
-
-
-def average_precision(recalls, precisions, mode='area'):
+def average_precision_det(recalls, precisions, mode='area'):
     """Calculate average precision (for single or multiple scales).
 
     Args:
@@ -154,7 +151,7 @@ def tpfp_imagenet(det_bboxes,
         area_ranges (list[tuple] | None): Range of bbox areas to be evaluated,
             in the format [(min1, max1), (min2, max2), ...]. Default: None.
         use_legacy_coordinate (bool): Whether to use coordinate system in
-            mmmtl v1.x. which means width, height should be
+            mmdet v1.x. which means width, height should be
             calculated as 'x2 - x1 + 1` and 'y2 - y1 + 1' respectively.
             Default: False.
 
@@ -263,7 +260,7 @@ def tpfp_default(det_bboxes,
             evaluated, in the format [(min1, max1), (min2, max2), ...].
             Default: None.
         use_legacy_coordinate (bool): Whether to use coordinate system in
-            mmmtl v1.x. which means width, height should be
+            mmdet v1.x. which means width, height should be
             calculated as 'x2 - x1 + 1` and 'y2 - y1 + 1' respectively.
             Default: False.
 
@@ -369,7 +366,7 @@ def tpfp_openimages(det_bboxes,
             evaluated, in the format [(min1, max1), (min2, max2), ...].
             Default: None.
         use_legacy_coordinate (bool): Whether to use coordinate system in
-            mmmtl v1.x. which means width, height should be
+            mmdet v1.x. which means width, height should be
             calculated as 'x2 - x1 + 1` and 'y2 - y1 + 1' respectively.
             Default: False.
         gt_bboxes_group_of (ndarray): GT group_of of this image, of shape
@@ -644,7 +641,7 @@ def eval_map(det_results,
         nproc (int): Processes used for computing TP and FP.
             Default: 4.
         use_legacy_coordinate (bool): Whether to use coordinate system in
-            mmmtl v1.x. which means width, height should be
+            mmdet v1.x. which means width, height should be
             calculated as 'x2 - x1 + 1` and 'y2 - y1 + 1' respectively.
             Default: False.
         use_group_of (bool): Whether to use group of when calculate TP and FP,
@@ -755,7 +752,7 @@ def eval_map(det_results,
             precisions = precisions[0, :]
             num_gts = num_gts.item()
         mode = 'area' if dataset != 'voc07' else '11points'
-        ap = average_precision(recalls, precisions, mode)
+        ap = average_precision_det(recalls, precisions, mode)
         eval_results.append({
             'num_gts': num_gts,
             'num_dets': num_dets,
@@ -857,5 +854,3 @@ def print_map_summary(mean_ap,
         table = AsciiTable(table_data)
         table.inner_footing_row_border = True
         print_log('\n' + table.table, logger=logger)
-
-

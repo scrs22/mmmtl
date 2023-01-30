@@ -3,6 +3,17 @@ import matplotlib.pyplot as plt
 import mmcv
 import numpy as np
 from matplotlib.backend_bases import CloseEvent
+import sys
+
+import cv2
+import pycocotools.mask as mask_util
+from matplotlib.collections import PatchCollection
+from matplotlib.patches import Polygon
+
+from mmmtl.core.evaluation.panoptic_utils import INSTANCE_OFFSET
+from ..mask.structures import bitmap_to_polygon
+from ..utils import mask2ndarray
+from .palette import get_palette, palette_val
 
 # A small value
 EPS = 1e-2
@@ -344,20 +355,7 @@ def imshow_infos(img,
 
 
 # Copyright (c) OpenMMLab. All rights reserved.
-import sys
 
-import cv2
-import matplotlib.pyplot as plt
-import mmcv
-import numpy as np
-import pycocotools.mask as mask_util
-from matplotlib.collections import PatchCollection
-from matplotlib.patches import Polygon
-
-from mmmtl.core.evaluation.panoptic_utils import INSTANCE_OFFSET
-from ..mask.structures import bitmap_to_polygon
-from ..utils import mask2ndarray
-from .palette import get_palette, palette_val
 
 __all__ = [
     'color_val_matplotlib', 'draw_masks', 'draw_bboxes', 'draw_labels',

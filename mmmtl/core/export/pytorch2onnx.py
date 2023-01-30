@@ -73,7 +73,7 @@ def build_model_from_cfg(config_path, checkpoint_path, cfg_options=None):
     Returns:
         torch.nn.Module: the built model
     """
-    from mmmtl.models import build_detector
+    from mmmtl.models import build_mtlearner
 
     cfg = mmcv.Config.fromfile(config_path)
     if cfg_options is not None:
@@ -86,7 +86,7 @@ def build_model_from_cfg(config_path, checkpoint_path, cfg_options=None):
 
     # build the model
     cfg.model.train_cfg = None
-    model = build_detector(cfg.model, test_cfg=cfg.get('test_cfg'))
+    model = build_mtlearner(cfg.model, test_cfg=cfg.get('test_cfg'))
     checkpoint = load_checkpoint(model, checkpoint_path, map_location='cpu')
     if 'CLASSES' in checkpoint.get('meta', {}):
         model.CLASSES = checkpoint['meta']['CLASSES']

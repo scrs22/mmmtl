@@ -13,17 +13,26 @@ from mmcv.runner import (get_dist_info, init_dist, load_checkpoint,
 
 from mmmtl.apis import multi_gpu_test, single_gpu_test
 from mmmtl.datasets import build_dataloader, build_dataset
-from mmmtl.models import build_classifier
+from mmmtl.models import build_mtlearner
 from mmmtl.utils import (auto_select_device, get_root_logger,
                          setup_multi_processes, wrap_distributed_model,
                          wrap_non_distributed_model)
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='mmcls test model')
+    parser = argparse.ArgumentParser(description='mmmtl test model')
     parser.add_argument('config', help='test config file path')
     parser.add_argument('checkpoint', help='checkpoint file')
+    parser.add_argument(
+        '--work-dir',
+        help='the directory to save the file containing evaluation metrics')
     parser.add_argument('--out', help='output result file')
+    parser.add_argument(
+        '--fuse-conv-bn',
+        action='store_true',
+        help='Whether to fuse conv and bn, this will slightly increase'
+        'the inference speed')
+    parser.add_argument('--task', help='train task - segmnetation, classification or detection')
     out_options = ['class_scores', 'pred_score', 'pred_label', 'pred_class']
     parser.add_argument(
         '--out-items',
@@ -35,6 +44,13 @@ def parse_args():
         'or use "all" to include all above, or use "none" to disable all of '
         'above. Defaults to output all.',
         metavar='')
+
+    parser.add_argument(
+        '--eval',
+        type=str,
+        nargs='+',
+        help='evaluation metrics, which depends on the dataset, e.g., "bbox",'
+        ' "segm", "proposal" for COCO, and "mAP", "recall" for PASCAL VOC')
     parser.add_argument(
         '--metrics',
         type=str,
@@ -70,6 +86,12 @@ def parse_args():
         'format will be parsed as a dict metric_options for dataset.evaluate()'
         ' function.')
     parser.add_argument(
+        '--eval-options',
+        nargs='+',
+        action=DictAction,
+        help='custom options for evaluation, the key-value pair in xxx=yyy '
+        'format will be kwargs for dataset.evaluate() function')
+    parser.add_argument(
         '--show-options',
         nargs='+',
         action=DictAction,
@@ -87,6 +109,13 @@ def parse_args():
         default=0,
         help='id of gpu to use '
         '(only applicable to non-distributed testing)')
+    parser.add_argument(
+        '--format-only',
+        action='store_true',
+        help='Format the output results without perform evaluation. It is'
+        'useful when you want to format the result to a specific format and '
+        'submit it to the test server')
+
     parser.add_argument(
         '--launcher',
         choices=['none', 'pytorch', 'slurm', 'mpi'],
@@ -106,11 +135,28 @@ def parse_args():
 
 def main():
     args = parse_args()
+    assert args.out or args.eval or args.format_only or args.show \
+        or args.show_dir, \
+        ('Please specify at least one operation (save/eval/format/show the '
+         'results / save the results) with the argument "--out", "--eval"'
+         ', "--format-only", "--show" or "--show-dir"')
+
+    if args.eval and args.format_only:
+        raise ValueError('--eval and --format_only cannot be both specified')
+
+    if args.out is not None and not args.out.endswith(('.pkl', '.pickle')):
+        raise ValueError('The output file must be a pkl file.')
 
     cfg = mmcv.Config.fromfile(args.config)
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
+    if args.task=='detection':
+         update_data_root(cfg)
 
+        if args.cfg_options is not None:
+            cfg.merge_from_dict(args.cfg_options)
+
+        cfg = compat_cfg(cfg)
     # set multi-process settings
     setup_multi_processes(cfg)
 
@@ -127,7 +173,7 @@ def main():
                       'in `gpu_ids` now.')
     else:
         cfg.gpu_ids = [args.gpu_id]
-    cfg.device = args.device or auto_select_device()
+    cfg.device = get_device()
 
     # init distributed env first, since logger depends on the dist info.
     if args.launcher == 'none':
@@ -136,7 +182,7 @@ def main():
         distributed = True
         init_dist(args.launcher, **cfg.dist_params)
 
-    dataset = build_dataset(cfg.data.test, default_args=dict(test_mode=True))
+    dataset = build_dataset(cfg.data.test, default_args=dict(test_mode=True),task=args.task)
 
     # build the dataloader
     # The default loader config
@@ -161,10 +207,10 @@ def main():
         **cfg.data.get('test_dataloader', {}),
     }
     # the extra round_up data will be removed during gpu/cpu collect
-    data_loader = build_dataloader(dataset, **test_loader_cfg)
+    data_loader = build_dataloader(dataset, **test_loader_cfg,task=args.task)
 
     # build the model and load checkpoint
-    model = build_classifier(cfg.model)
+    model = build_mtlearner(cfg.model)
     fp16_cfg = cfg.get('fp16', None)
     if fp16_cfg is not None:
         wrap_fp16_model(model)
@@ -173,7 +219,7 @@ def main():
     if 'CLASSES' in checkpoint.get('meta', {}):
         CLASSES = checkpoint['meta']['CLASSES']
     else:
-        from mmcls.datasets import ImageNet
+        from mmmtl.datasets import ImageNet
         warnings.simplefilter('once')
         warnings.warn('Class names are not saved in the checkpoint\'s '
                       'meta data, use imagenet by default.')
@@ -192,12 +238,12 @@ def main():
         model.CLASSES = CLASSES
         show_kwargs = args.show_options or {}
         outputs = single_gpu_test(model, data_loader, args.show, args.show_dir,
-                                  **show_kwargs)
+                                  **show_kwargs,task=args.task)
     else:
         model = wrap_distributed_model(
             model, device=cfg.device, broadcast_buffers=False)
         outputs = multi_gpu_test(model, data_loader, args.tmpdir,
-                                 args.gpu_collect)
+                                 args.gpu_collect,task=args.task)
 
     rank, _ = get_dist_info()
     if rank == 0:
