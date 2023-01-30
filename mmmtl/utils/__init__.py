@@ -5,6 +5,7 @@ from .distribution import wrap_distributed_model, wrap_non_distributed_model
 from .logger import get_root_logger, load_json_log
 from .setup_env import setup_multi_processes
 from .misc import find_latest_checkpoint
+from .tasks import CLASSIFICATION, DETECTION, SEGMENTATION
 
 cls = [
     'collect_env', 'get_root_logger', 'load_json_log', 'setup_multi_processes',
@@ -30,7 +31,7 @@ det = [
     'update_data_root', 'setup_multi_processes', 'get_caller_name',
     'log_img_scale', 'compat_cfg', 'split_batch', 'build_ddp', 'build_dp',
     'get_device', 'replace_cfg_vals', 'AvoidOOM', 'AvoidCUDAOOM',
-    'rfnext_init_model'
+    'rfnext_init_model','SEGMENTATION','DETECTION','CLASSIFICATION'
 ]
 
 

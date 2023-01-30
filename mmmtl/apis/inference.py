@@ -10,9 +10,11 @@ from mmcv.parallel import collate, scatter
 from mmcv.runner import load_checkpoint
 
 from mmmtl.core import get_classes
-from mmmtl.datasets import replace_ImageToTensor
-from mmmtl.datasets.pipelines import Compose
-from mmmtl.models import build_detector,build_segmentor,build_classifier
+from mmmtl.datasets.det.utils import replace_ImageToTensor
+from mmmtl.datasets.pipelines.cls import ComposeCls
+from mmmtl.datasets.pipelines.det import ComposeDet
+from mmmtl.datasets.pipelines.seg import ComposeSeg
+from mmmtl.models import build_mtlearner
 
 def init_classifier(config, checkpoint=None, device='cuda:0', options=None):
     """Initialize a classifier from config file.
@@ -33,7 +35,7 @@ def init_classifier(config, checkpoint=None, device='cuda:0', options=None):
     if options is not None:
         config.merge_from_dict(options)
     config.model.pretrained = None
-    model = build_classifier(config.model)
+    model = build_mtlearner(config.model)
     if checkpoint is not None:
         # Mapping the weights to GPU may cause unexpected video memory leak
         # which refers to https://github.com/open-mmlab/mmdetection/pull/6405
@@ -78,7 +80,7 @@ def init_detector(config, checkpoint=None, device='cuda:0', cfg_options=None):
     elif 'init_cfg' in config.model.backbone:
         config.model.backbone.init_cfg = None
     config.model.train_cfg = None
-    model = build_detector(config.model, test_cfg=config.get('test_cfg'))
+    model = build_mtlearner(config.model, test_cfg=config.get('test_cfg'))
     if checkpoint is not None:
         checkpoint = load_checkpoint(model, checkpoint, map_location='cpu')
         if 'CLASSES' in checkpoint.get('meta', {}):
@@ -119,7 +121,7 @@ def init_segmentor(config, checkpoint=None, device='cuda:0'):
                         'but got {}'.format(type(config)))
     config.model.pretrained = None
     config.model.train_cfg = None
-    model = build_segmentor(config.model, test_cfg=config.get('test_cfg'))
+    model = build_mtlearner(config.model, test_cfg=config.get('test_cfg'))
     if checkpoint is not None:
         checkpoint = load_checkpoint(model, checkpoint, map_location='cpu')
         model.CLASSES = checkpoint['meta']['CLASSES']
@@ -146,7 +148,7 @@ class LoadImage:
         warnings.simplefilter('once')
         warnings.warn('`LoadImage` is deprecated and will be removed in '
                       'future releases. You may use `LoadImageFromWebcam` '
-                      'from `mmdet.datasets.pipelines.` instead.')
+                      'from `mmmtl.datasets.pipelines.` instead.')
         if isinstance(results['img'], str):
             results['filename'] = results['img']
             results['ori_filename'] = results['img']
@@ -181,7 +183,7 @@ def inference_classifier(model, img):
         if cfg.data.test.pipeline[0]['type'] == 'LoadImageFromFile':
             cfg.data.test.pipeline.pop(0)
         data = dict(img=img)
-    test_pipeline = Compose(cfg.data.test.pipeline)
+    test_pipeline = ComposeCls(cfg.data.test.pipeline)
     data = test_pipeline(data)
     data = collate([data], samples_per_gpu=1)
     if next(model.parameters()).is_cuda:
@@ -223,7 +225,7 @@ def inference_detector(model, imgs):
         cfg.data.test.pipeline[0].type = 'LoadImageFromWebcam'
 
     cfg.data.test.pipeline = replace_ImageToTensor(cfg.data.test.pipeline)
-    test_pipeline = Compose(cfg.data.test.pipeline)
+    test_pipeline = ComposeDet(cfg.data.test.pipeline)
 
     datas = []
     for img in imgs:
@@ -280,7 +282,7 @@ async def async_inference_detector(model, imgs):
         cfg.data.test.pipeline[0].type = 'LoadImageFromWebcam'
 
     cfg.data.test.pipeline = replace_ImageToTensor(cfg.data.test.pipeline)
-    test_pipeline = Compose(cfg.data.test.pipeline)
+    test_pipeline = ComposeDet(cfg.data.test.pipeline)
 
     datas = []
     for img in imgs:
@@ -327,7 +329,7 @@ def inference_segmentor(model, imgs):
     device = next(model.parameters()).device  # model device
     # build the data pipeline
     test_pipeline = [LoadImage()] + cfg.data.test.pipeline[1:]
-    test_pipeline = Compose(test_pipeline)
+    test_pipeline = ComposeSeg(test_pipeline)
     # prepare data
     data = []
     imgs = imgs if isinstance(imgs, list) else [imgs]
@@ -451,7 +453,7 @@ def show_result_pyplot_segmentation(model,
     if out_file is not None:
         mmcv.imwrite(img, out_file)
 
-def init_model(config,task="detection", checkpoint=None, device='cuda:0',options=None):
+def init_mtlearner(config, checkpoint=None, device='cuda:0',options=None,task="detection"):
     if task=="detection":
         return init_detector(config,checkpoint, device, options)
     if task=="classification":
@@ -460,7 +462,7 @@ def init_model(config,task="detection", checkpoint=None, device='cuda:0',options
         return init_segmentor(config,checkpoint, device)
 
 
-def inference_model(model,imgs,task="detection"):
+def inference_mtlearner(model,imgs,task="detection"):
     if task=="detection":
         return inference_detector(model, imgs)
     if task=="classification":
@@ -471,7 +473,6 @@ def inference_model(model,imgs,task="detection"):
 def show_result_pyplot(model,
                         img,
                         result,
-                        task='detection',
                         palette=None,
                         fig_size=(15, 10),
                         opacity=0.5,
@@ -479,7 +480,8 @@ def show_result_pyplot(model,
                         title='result',
                         wait_time=0,
                         block=True,
-                        out_file=None):
+                        out_file=None,
+                        task='detection',):
     if task=="detection":
         show_result_pyplot_detection(model,
                           img,
