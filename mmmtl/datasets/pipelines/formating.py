@@ -4,6 +4,6 @@ import warnings
 
 from .formatting import *
 
-warnings.warn('DeprecationWarning: mmmtl.datasets.pipelines.formating will be '
-              'deprecated in 2021, please replace it with '
-              'mmmtl.datasets.pipelines.formatting.')
+warnings.warn('DeprecationWarning: mmdet.datasets.pipelines.formating will be '
+              'deprecated, please replace it with '
+              'mmdet.datasets.pipelines.formatting.')

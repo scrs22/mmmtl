@@ -8,10 +8,6 @@ from torch.utils.data import DistributedSampler as _DistributedSampler
 
 from mmmtl.core.utils import sync_random_seed
 from mmmtl.utils import get_device
-from mmmtl.datasets import SAMPLERS
-
-import math
-from typing import TypeVar, Optional, Iterator, Iterable, Sequence, List, Generic, Sized, Union
 
 import torch
 from torch.utils.data import Sampler, Dataset
@@ -82,7 +78,6 @@ class DistributedBatchSampler(_DistributedSampler):
     def __len__(self) -> int:
         return (self.num_samples + self.batch_size - 1) // self.batch_size
 
-@SAMPLERS.register_module()
 class Distributed_Weighted_BatchSampler(_DistributedSampler):
 
     def __init__(self,

@@ -5,10 +5,8 @@ from mmcv.runner import get_dist_info
 from torch.utils.data import Sampler
 
 from mmmtl.core.utils import sync_random_seed
-from mmmtl.datasets import SAMPLERS
 
 
-@SAMPLERS.register_module()
 class RepeatAugSampler(Sampler):
     """Sampler that restricts data loading to a subset of the dataset for
     distributed, with repeated augmentation. It ensures that different each

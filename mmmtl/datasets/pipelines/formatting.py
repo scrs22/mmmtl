@@ -6,18 +6,22 @@ import numpy as np
 import torch
 from mmcv.parallel import DataContainer as DC
 from PIL import Image
+from ..det.builder import DET_PIPELINES
+from ..seg.builder import SEG_PIPELINES
+from ..cls.builder import CLS_PIPELINES
 
-from ..builder import PIPELINES
-CLASSIFICATION="classification"
-SEGMENTATION='segmentation'
-DETECTION="detection"
 
 def to_tensor(data):
     """Convert objects of various python types to :obj:`torch.Tensor`.
 
     Supported types are: :class:`numpy.ndarray`, :class:`torch.Tensor`,
     :class:`Sequence`, :class:`int` and :class:`float`.
+
+    Args:
+        data (torch.Tensor | numpy.ndarray | Sequence | int | float): Data to
+            be converted.
     """
+
     if isinstance(data, torch.Tensor):
         return data
     elif isinstance(data, np.ndarray):
@@ -29,19 +33,31 @@ def to_tensor(data):
     elif isinstance(data, float):
         return torch.FloatTensor([data])
     else:
-        raise TypeError(
-            f'Type {type(data)} cannot be converted to tensor.'
-            'Supported types are: `numpy.ndarray`, `torch.Tensor`, '
-            '`Sequence`, `int` and `float`')
+        raise TypeError(f'type {type(data)} cannot be converted to tensor.')
 
+@DET_PIPELINES.register_module()
+@SEG_PIPELINES.register_module()
+@CLS_PIPELINES.register_module()
+class ToTensor:
+    """Convert some results to :obj:`torch.Tensor` by given keys.
 
-@PIPELINES.register_module()
-class ToTensor(object):
+    Args:
+        keys (Sequence[str]): Keys that need to be converted to Tensor.
+    """
 
     def __init__(self, keys):
         self.keys = keys
 
     def __call__(self, results):
+        """Call function to convert data in results to :obj:`torch.Tensor`.
+
+        Args:
+            results (dict): Result dict contains the data to convert.
+
+        Returns:
+            dict: The result dict contains the data converted
+                to :obj:`torch.Tensor`.
+        """
         for key in self.keys:
             results[key] = to_tensor(results[key])
         return results
@@ -50,46 +66,82 @@ class ToTensor(object):
         return self.__class__.__name__ + f'(keys={self.keys})'
 
 
-@PIPELINES.register_module()
-class ImageToTensor(object):
+@CLS_PIPELINES.register_module()
+@DET_PIPELINES.register_module()
+@SEG_PIPELINES.register_module()
+class ImageToTensor:
+    """Convert image to :obj:`torch.Tensor` by given keys.
 
-    def __init__(self, keys,task=CLASSIFICATION):
+    The dimension order of input image is (H, W, C). The pipeline will convert
+    it to (C, H, W). If only 2 dimension (H, W) is given, the output would be
+    (1, H, W).
+
+    Args:
+        keys (Sequence[str]): Key of images to be converted to Tensor.
+    """
+
+    def __init__(self, keys):
         self.keys = keys
-        self.task=task
 
     def __call__(self, results):
+        """Call function to convert image in results to :obj:`torch.Tensor` and
+        permute the channel order.
+
+        Args:
+            results (dict): Result dict contains the image data to convert.
+
+        Returns:
+            dict: The result dict contains the image converted
+                to :obj:`torch.Tensor` and permuted to (C, H, W) order.
+        """
         for key in self.keys:
             img = results[key]
             if len(img.shape) < 3:
                 img = np.expand_dims(img, -1)
-            results[key] = to_tensor(img.transpose(2, 0, 1))
-            if self.task==DETECTION:
-                results[key] = to_tensor(img).permute(2, 0, 1).contiguous()
-        
+            results[key] = to_tensor(img).permute(2, 0, 1).contiguous()
         return results
 
     def __repr__(self):
         return self.__class__.__name__ + f'(keys={self.keys})'
 
 
-@PIPELINES.register_module()
-class Transpose(object):
+@SEG_PIPELINES.register_module()
+@CLS_PIPELINES.register_module()
+@DET_PIPELINES.register_module()
+class Transpose:
+    """Transpose some results by given keys.
+
+    Args:
+        keys (Sequence[str]): Keys of results to be transposed.
+        order (Sequence[int]): Order of transpose.
+    """
 
     def __init__(self, keys, order):
         self.keys = keys
         self.order = order
 
     def __call__(self, results):
+        """Call function to transpose the channel order of data in results.
+
+        Args:
+            results (dict): Result dict contains the data to transpose.
+
+        Returns:
+            dict: The result dict contains the data transposed to \
+                ``self.order``.
+        """
         for key in self.keys:
             results[key] = results[key].transpose(self.order)
         return results
 
     def __repr__(self):
         return self.__class__.__name__ + \
-            f'(keys={self.keys}, order={self.order})'
+               f'(keys={self.keys}, order={self.order})'
 
 
-@PIPELINES.register_module()
+@DET_PIPELINES.register_module()
+@SEG_PIPELINES.register_module()
+@CLS_PIPELINES.register_module()
 class ToDataContainer:
     """Convert results to :obj:`mmcv.DataContainer` by given fields.
 
@@ -128,7 +180,9 @@ class ToDataContainer:
         return self.__class__.__name__ + f'(fields={self.fields})'
 
 
-@PIPELINES.register_module()
+@DET_PIPELINES.register_module()
+@SEG_PIPELINES.register_module()
+@CLS_PIPELINES.register_module()
 class DefaultFormatBundle:
     """Default formatting bundle.
 
@@ -136,7 +190,7 @@ class DefaultFormatBundle:
     "proposals", "gt_bboxes", "gt_labels", "gt_masks" and "gt_semantic_seg".
     These fields are formatted as follows.
 
-    - img: (1)transpose, (2)to tensor, (3)to DataContainer (stack=True)
+    - img: (1)transpose & to tensor, (2)to DataContainer (stack=True)
     - proposals: (1)to tensor, (2)to DataContainer
     - gt_bboxes: (1)to tensor, (2)to DataContainer
     - gt_bboxes_ignore: (1)to tensor, (2)to DataContainer
@@ -183,9 +237,20 @@ class DefaultFormatBundle:
             results = self._add_default_meta_keys(results)
             if len(img.shape) < 3:
                 img = np.expand_dims(img, -1)
-            img = np.ascontiguousarray(img.transpose(2, 0, 1))
+            # To improve the computational speed by by 3-5 times, apply:
+            # If image is not contiguous, use
+            # `numpy.transpose()` followed by `numpy.ascontiguousarray()`
+            # If image is already contiguous, use
+            # `torch.permute()` followed by `torch.contiguous()`
+            # Refer to https://github.com/open-mmlab/mmdetection/pull/9533
+            # for more details
+            if not img.flags.c_contiguous:
+                img = np.ascontiguousarray(img.transpose(2, 0, 1))
+                img = to_tensor(img)
+            else:
+                img = to_tensor(img).permute(2, 0, 1).contiguous()
             results['img'] = DC(
-                to_tensor(img), padding_value=self.pad_val['img'], stack=True)
+                img, padding_value=self.pad_val['img'], stack=True)
         for key in ['proposals', 'gt_bboxes', 'gt_bboxes_ignore', 'gt_labels']:
             if key not in results:
                 continue
@@ -231,19 +296,86 @@ class DefaultFormatBundle:
         return self.__class__.__name__ + \
                f'(img_to_float={self.img_to_float})'
 
+@DET_PIPELINES.register_module()
+@SEG_PIPELINES.register_module()
+@CLS_PIPELINES.register_module()
+class Collect:
+    """Collect data from the loader relevant to the specific task.
 
-@PIPELINES.register_module()
-class ToPIL(object):
+    This is usually the last stage of the data loader pipeline. Typically keys
+    is set to some subset of "img", "proposals", "gt_bboxes",
+    "gt_bboxes_ignore", "gt_labels", and/or "gt_masks".
 
-    def __init__(self):
-        pass
+    The "img_meta" item is always populated.  The contents of the "img_meta"
+    dictionary depends on "meta_keys". By default this includes:
+
+        - "img_shape": shape of the image input to the network as a tuple \
+            (h, w, c).  Note that images may be zero padded on the \
+            bottom/right if the batch tensor is larger than this shape.
+
+        - "scale_factor": a float indicating the preprocessing scale
+
+        - "flip": a boolean indicating if image flip transform was used
+
+        - "filename": path to the image file
+
+        - "ori_shape": original shape of the image as a tuple (h, w, c)
+
+        - "pad_shape": image shape after padding
+
+        - "img_norm_cfg": a dict of normalization information:
+
+            - mean - per channel mean subtraction
+            - std - per channel std divisor
+            - to_rgb - bool indicating if bgr was converted to rgb
+
+    Args:
+        keys (Sequence[str]): Keys of results to be collected in ``data``.
+        meta_keys (Sequence[str], optional): Meta keys to be converted to
+            ``mmcv.DataContainer`` and collected in ``data[img_metas]``.
+            Default: ``('filename', 'ori_filename', 'ori_shape', 'img_shape',
+            'pad_shape', 'scale_factor', 'flip', 'flip_direction',
+            'img_norm_cfg')``
+    """
+
+    def __init__(self,
+                 keys,
+                 meta_keys=('filename', 'ori_filename', 'ori_shape',
+                            'img_shape', 'pad_shape', 'scale_factor', 'flip',
+                            'flip_direction', 'img_norm_cfg')):
+        self.keys = keys
+        self.meta_keys = meta_keys
 
     def __call__(self, results):
-        results['img'] = Image.fromarray(results['img'])
-        return results
+        """Call function to collect keys in results. The keys in ``meta_keys``
+        will be converted to :obj:mmcv.DataContainer.
 
+        Args:
+            results (dict): Result dict contains the data to collect.
 
-@PIPELINES.register_module()
+        Returns:
+            dict: The result dict contains the following keys
+
+                - keys in``self.keys``
+                - ``img_metas``
+        """
+
+        data = {}
+        img_meta = {}
+        for key in self.meta_keys:
+            img_meta[key] = results[key]
+        data['img_metas'] = DC(img_meta, cpu_only=True)
+        for key in self.keys:
+            data[key] = results[key]
+        return data
+
+    def __repr__(self):
+        return self.__class__.__name__ + \
+               f'(keys={self.keys}, meta_keys={self.meta_keys})'
+
+@DET_PIPELINES.register_module()
+@SEG_PIPELINES.register_module()
+@CLS_PIPELINES.register_module()
 class ToNumpy(object):
 
     def __init__(self):
@@ -253,54 +385,22 @@ class ToNumpy(object):
         results['img'] = np.array(results['img'], dtype=np.float32)
         return results
 
+@SEG_PIPELINES.register_module()
+@CLS_PIPELINES.register_module()
+@DET_PIPELINES.register_module()
+class ToPIL(object):
 
-@PIPELINES.register_module()
-class Collect(object):
-    """Collect data from the loader relevant to the specific task.
-
-    This is usually the last stage of the data loader pipeline. Typically keys
-    is set to some subset of "img" and "gt_label".
-
-    Args:
-        keys (Sequence[str]): Keys of results to be collected in ``data``.
-        meta_keys (Sequence[str], optional): Meta keys to be converted to
-            ``mmcv.DataContainer`` and collected in ``data[img_metas]``.
-            Default: ('filename', 'ori_shape', 'img_shape', 'flip',
-            'flip_direction', 'img_norm_cfg')
-
-    Returns:
-        dict: The result dict contains the following keys
-
-            - keys in ``self.keys``
-            - ``img_metas`` if available
-    """
-
-    def __init__(self,
-                 keys,
-                 meta_keys=('filename', 'ori_filename', 'ori_shape',
-                            'img_shape', 'flip', 'flip_direction',
-                            'img_norm_cfg')):
-        self.keys = keys
-        self.meta_keys = meta_keys
+    def __init__(self):
+        pass
 
     def __call__(self, results):
-        data = {}
-        img_meta = {}
-        for key in self.meta_keys:
-            if key in results:
-                img_meta[key] = results[key]
-        data['img_metas'] = DC(img_meta, cpu_only=True)
-        for key in self.keys:
-            data[key] = results[key]
-        return data
-
-    def __repr__(self):
-        return self.__class__.__name__ + \
-            f'(keys={self.keys}, meta_keys={self.meta_keys})'
-
-
-@PIPELINES.register_module()
-class WrapFieldsToLists(object):
+        results['img'] = Image.fromarray(results['img'])
+        return results
+    
+@DET_PIPELINES.register_module()
+@SEG_PIPELINES.register_module()
+@CLS_PIPELINES.register_module()
+class WrapFieldsToLists:
     """Wrap fields of the data dictionary into lists for evaluation.
 
     This class can be used as a last step of a test or validation
@@ -313,13 +413,24 @@ class WrapFieldsToLists(object):
                     mean=[123.675, 116.28, 103.53],
                     std=[58.395, 57.12, 57.375],
                     to_rgb=True),
+        >>>    dict(type='Pad', size_divisor=32),
         >>>    dict(type='ImageToTensor', keys=['img']),
         >>>    dict(type='Collect', keys=['img']),
-        >>>    dict(type='WrapIntoLists')
+        >>>    dict(type='WrapFieldsToLists')
         >>> ]
     """
 
     def __call__(self, results):
+        """Call function to wrap fields into lists.
+
+        Args:
+            results (dict): Result dict contains the data to wrap.
+
+        Returns:
+            dict: The result dict where value of ``self.keys`` are wrapped \
+                into list.
+        """
+
         # Wrap dict fields into lists
         for key, val in results.items():
             results[key] = [val]
@@ -328,8 +439,9 @@ class WrapFieldsToLists(object):
     def __repr__(self):
         return f'{self.__class__.__name__}()'
 
-
-@PIPELINES.register_module()
+@SEG_PIPELINES.register_module()
+@DET_PIPELINES.register_module()
+@CLS_PIPELINES.register_module()
 class ToHalf(object):
 
     def __init__(self, keys):
@@ -342,4 +454,4 @@ class ToHalf(object):
             else:
                 results[k] = results[k].astype(np.float16)
         return results
-
+    
