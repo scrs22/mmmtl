@@ -1,9 +1,9 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from ..builder import DETECTORS
+from mmmtl.models.builder import MTLEARNERS
 from .two_stage import TwoStageDetector
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class FasterRCNN(TwoStageDetector):
     """Implementation of `Faster R-CNN <https://arxiv.org/abs/1506.01497>`_"""
 

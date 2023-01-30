@@ -28,7 +28,8 @@ from .seresnet import SEResNet
 from .seresnext import SEResNeXt
 from .shufflenet_v1 import ShuffleNetV1
 from .shufflenet_v2 import ShuffleNetV2
-from .swin_transformer import SwinTransformer
+# from .swin_transformer import SwinTransformer as SwinTransformerCls
+
 from .swin_transformer_v2 import SwinTransformerV2
 from .swin_det_transformer import SwinTransformerDet
 from .t2t_vit import T2T_ViT
@@ -69,7 +70,7 @@ from .resnest import ResNeSt
 from .resnet import ResNet, ResNetV1d
 from .resnext import ResNeXt
 from .ssd_vgg import SSDVGG
-# from .swin import SwinTransformer
+from .swin import SwinTransformer 
 from .trident_resnet import TridentResNet
 
 det = [
@@ -107,8 +108,7 @@ from .vit import VisionTransformer
 
 seg = [
     'ResNet', 'ResNetV1c', 'ResNetV1d', 'ResNeXt', 'HRNet', 'FastSCNN',
-    'ResNeSt', 'MobileNetV2', 'UNet', 'CGNet', 'MobileNetV3',
-    'VisionTransformer', 'SwinTransformer', 'MixVisionTransformer',
+    'ResNeSt', 'MobileNetV2', 'UNet', 'CGNet', 'MobileNetV3', 'SwinTransformer', 'MixVisionTransformer',
     'BiSeNetV1', 'BiSeNetV2', 'ICNet', 'TIMMBackbone', 'ERFNet', 'PCPVT',
     'SVT', 'STDCNet', 'STDCContextPathNet', 'BEiT', 'MAE'
 ]

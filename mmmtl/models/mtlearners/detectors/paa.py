@@ -1,9 +1,9 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from ..builder import DETECTORS
+from mmmtl.models.builder import MTLEARNERS
 from .single_stage import SingleStageDetector
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class PAA(SingleStageDetector):
     """Implementation of `PAA <https://arxiv.org/pdf/2007.08103.pdf>`_."""
 

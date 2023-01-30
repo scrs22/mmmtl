@@ -3,11 +3,11 @@ import torch
 import torch.nn as nn
 from mmcv.runner import load_checkpoint
 
-from ..builder import DETECTORS, build_backbone, build_head, build_neck
+from mmmtl.models.builder import MTLEARNERS, build_backbone, build_head, build_neck
 from .kd_one_stage import KnowledgeDistillationSingleStageDetector
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class LAD(KnowledgeDistillationSingleStageDetector):
     """Implementation of `LAD <https://arxiv.org/pdf/2108.10520.pdf>`_."""
 

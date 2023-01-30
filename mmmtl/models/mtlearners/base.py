@@ -9,9 +9,9 @@ import torch.distributed as dist
 from mmcv.runner import BaseModule, auto_fp16
 
 from mmmtl.core.visualization import imshow_infos
-from mmmtl.model.mtlearners.classifiers import BaseClassifier
-from mmmtl.model.mtlearners.segmentors import BaseSegmentor
-from mmmtl.model.mtlearners.detectors import BaseDetector
+from mmmtl.models.mtlearners.classifiers import BaseClassifier
+from mmmtl.models.mtlearners.segmentors import BaseSegmentor
+from mmmtl.models.mtlearners.detectors import BaseDetector
 
 class BaseMTLearner(BaseDetector,BaseSegmentor,BaseClassifier,metaclass=ABCMeta):
     """Base class for MTLearners."""

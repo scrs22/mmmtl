@@ -1,9 +1,9 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from ..builder import DETECTORS
+from mmmtl.models.builder import MTLEARNERS
 from .two_stage import TwoStageDetector
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class CascadeRCNN(TwoStageDetector):
     r"""Implementation of `Cascade R-CNN: Delving into High Quality Object
     Detection <https://arxiv.org/abs/1906.09756>`_"""

@@ -1,9 +1,9 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from ..builder import DETECTORS
+from mmmtl.models.builder import MTLEARNERS
 from .cascade_rcnn import CascadeRCNN
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class HybridTaskCascade(CascadeRCNN):
     """Implementation of `HTC <https://arxiv.org/abs/1901.07518>`_"""
 

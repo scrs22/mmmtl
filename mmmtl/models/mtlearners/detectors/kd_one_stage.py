@@ -5,12 +5,12 @@ import mmcv
 import torch
 from mmcv.runner import load_checkpoint
 
-from .. import build_detector
-from ..builder import DETECTORS
+
+from mmmtl.models.builder import MTLEARNERS, build_mtlearner
 from .single_stage import SingleStageDetector
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class KnowledgeDistillationSingleStageDetector(SingleStageDetector):
     r"""Implementation of `Distilling the Knowledge in a Neural Network.
     <https://arxiv.org/abs/1503.02531>`_.
@@ -38,7 +38,7 @@ class KnowledgeDistillationSingleStageDetector(SingleStageDetector):
         # Build teacher model
         if isinstance(teacher_config, (str, Path)):
             teacher_config = mmcv.Config.fromfile(teacher_config)
-        self.teacher_model = build_detector(teacher_config['model'])
+        self.teacher_model = build_mtlearner(teacher_config['model'])
         if teacher_ckpt is not None:
             load_checkpoint(
                 self.teacher_model, teacher_ckpt, map_location='cpu')

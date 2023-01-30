@@ -1,9 +1,9 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from ..builder import DETECTORS
+from mmmtl.models.builder import MTLEARNERS
 from .single_stage_instance_seg import SingleStageInstanceSegmentor
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class SOLOv2(SingleStageInstanceSegmentor):
     """`SOLOv2: Dynamic and Fast Instance Segmentation
     <https://arxiv.org/abs/2003.10152>`_

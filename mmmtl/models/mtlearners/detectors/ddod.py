@@ -1,9 +1,9 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from ..builder import DETECTORS
+from mmmtl.models.builder import MTLEARNERS
 from .single_stage import SingleStageDetector
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class DDOD(SingleStageDetector):
     """Implementation of `DDOD <https://arxiv.org/pdf/2107.02963.pdf>`_."""
 

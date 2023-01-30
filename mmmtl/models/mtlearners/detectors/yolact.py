@@ -2,11 +2,11 @@
 import torch
 
 from mmmtl.core import bbox2result
-from ..builder import DETECTORS, build_head
+from mmmtl.models.builder import MTLEARNERS, build_head
 from .single_stage import SingleStageDetector
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class YOLACT(SingleStageDetector):
     """Implementation of `YOLACT <https://arxiv.org/abs/1904.02689>`_"""
 

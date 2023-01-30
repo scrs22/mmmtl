@@ -3,12 +3,12 @@ from torch import nn
 
 from mmmtl.core import add_prefix
 from mmmtl.ops import resize
-from .. import builder
-from ..builder import SEGMENTORS
+from mmmtl.models import builder
+from mmmtl.models.builder import MTLEARNERS
 from .encoder_decoder import EncoderDecoder
 
 
-@SEGMENTORS.register_module()
+@MTLEARNERS.register_module()
 class CascadeEncoderDecoder(EncoderDecoder):
     """Cascade Encoder Decoder segmentors.
 

@@ -3,11 +3,11 @@ import warnings
 
 import torch
 
-from ..builder import DETECTORS, build_backbone, build_head, build_neck
+from mmmtl.models.builder import MTLEARNERS, build_backbone, build_head, build_neck
 from .base import BaseDetector
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class TwoStageDetector(BaseDetector):
     """Base class for two-stage detectors.
 

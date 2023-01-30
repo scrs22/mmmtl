@@ -5,12 +5,12 @@ import torch.nn.functional as F
 
 from mmmtl.core import add_prefix
 from mmmtl.ops import resize
-from .. import builder
-from ..builder import SEGMENTORS
+from mmmtl.models import builder
+from mmmtl.models.builder import MTLEARNERS
 from .base import BaseSegmentor
 
 
-@SEGMENTORS.register_module()
+@MTLEARNERS.register_module()
 class EncoderDecoder(BaseSegmentor):
     """Encoder Decoder segmentors.
 

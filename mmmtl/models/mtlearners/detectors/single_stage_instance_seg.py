@@ -7,13 +7,13 @@ import numpy as np
 import torch
 
 from mmmtl.core.visualization.image import imshow_det_bboxes
-from ..builder import DETECTORS, build_backbone, build_head, build_neck
+from mmmtl.models.builder import MTLEARNERS, build_backbone, build_head, build_neck
 from .base import BaseDetector
 
 INF = 1e8
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class SingleStageInstanceSegmentor(BaseDetector):
     """Base class for single-stage instance segmentors."""
 

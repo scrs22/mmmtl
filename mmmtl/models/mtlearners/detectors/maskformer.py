@@ -6,11 +6,11 @@ import numpy as np
 
 from mmmtl.core import INSTANCE_OFFSET, bbox2result
 from mmmtl.core.visualization import imshow_det_bboxes
-from ..builder import DETECTORS, build_backbone, build_head, build_neck
+from mmmtl.models.builder import MTLEARNERS, build_backbone, build_head, build_neck
 from .single_stage import SingleStageDetector
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class MaskFormer(SingleStageDetector):
     r"""Implementation of `Per-Pixel Classification is
     NOT All You Need for Semantic Segmentation

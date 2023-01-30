@@ -2,12 +2,12 @@
 import torch
 
 from mmmtl.core import bbox2result
-from mmmtl.models.builder import DETECTORS
-from ...core.utils import flip_tensor
+from mmmtl.models.builder import MTLEARNERS
+from mmmtl.core.utils import flip_tensor
 from .single_stage import SingleStageDetector
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class CenterNet(SingleStageDetector):
     """Implementation of CenterNet(Objects as Points)
 

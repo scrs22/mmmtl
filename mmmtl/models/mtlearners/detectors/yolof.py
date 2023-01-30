@@ -1,9 +1,9 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from ..builder import DETECTORS
+from mmmtl.models.builder import MTLEARNERS
 from .single_stage import SingleStageDetector
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class YOLOF(SingleStageDetector):
     r"""Implementation of `You Only Look One-level Feature
     <https://arxiv.org/abs/2103.09460>`_"""

@@ -1,9 +1,9 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from ..builder import DETECTORS
+from mmmtl.models.builder import MTLEARNERS
 from .detr import DETR
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class DeformableDETR(DETR):
 
     def __init__(self, *args, **kwargs):

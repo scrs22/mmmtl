@@ -122,7 +122,7 @@ class TransformerEncoderLayer(BaseModule):
         return x
 
 
-@BACKBONES.register_module()
+@BACKBONES.register_module(force = True)
 class VisionTransformer(BaseModule):
     """Vision Transformer.
 

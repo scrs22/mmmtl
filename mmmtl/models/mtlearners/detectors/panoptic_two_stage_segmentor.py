@@ -5,12 +5,12 @@ import torch
 
 from mmmtl.core import INSTANCE_OFFSET, bbox2roi, multiclass_nms
 from mmmtl.core.visualization import imshow_det_bboxes
-from ..builder import DETECTORS, build_head
-from ..roi_heads.mask_heads.fcn_mask_head import _do_paste_mask
+from mmmtl.models.builder import MTLEARNERS, build_head
+from mmmtl.models.roi_heads.mask_heads.fcn_mask_head import _do_paste_mask
 from .two_stage import TwoStageDetector
 
 
-@DETECTORS.register_module()
+@MTLEARNERS.register_module()
 class TwoStagePanopticSegmentor(TwoStageDetector):
     """Base class of Two-stage Panoptic Segmentor.
 
