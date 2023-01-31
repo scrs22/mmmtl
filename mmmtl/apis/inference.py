@@ -15,8 +15,9 @@ from mmmtl.datasets.pipelines.cls import ComposeCls
 from mmmtl.datasets.pipelines.det import ComposeDet
 from mmmtl.datasets.pipelines.seg import ComposeSeg
 from mmmtl.models import build_mtlearner
+from mmmtl.utils.tasks import DETECTION
 
-def init_classifier(config, checkpoint=None, device='cuda:0', options=None):
+def init_classification(config, checkpoint=None, device='cuda:0', cfg_options=None):
     """Initialize a classifier from config file.
     Args:
         config (str or :obj:`mmcv.Config`): Config file path or the config
@@ -32,8 +33,8 @@ def init_classifier(config, checkpoint=None, device='cuda:0', options=None):
     elif not isinstance(config, mmcv.Config):
         raise TypeError('config must be a filename or Config object, '
                         f'but got {type(config)}')
-    if options is not None:
-        config.merge_from_dict(options)
+    if cfg_options is not None:
+        config.merge_from_dict(cfg_options)
     config.model.pretrained = None
     model = build_mtlearner(config.model)
     if checkpoint is not None:
@@ -56,7 +57,7 @@ def init_classifier(config, checkpoint=None, device='cuda:0', options=None):
 
 
 
-def init_detector(config, checkpoint=None, device='cuda:0', cfg_options=None):
+def init_detection(config, checkpoint=None, device='cuda:0', cfg_options=None):
     """Initialize a detector from config file.
     Args:
         config (str, :obj:`Path`, or :obj:`mmcv.Config`): Config file path,
@@ -102,7 +103,7 @@ def init_detector(config, checkpoint=None, device='cuda:0', cfg_options=None):
     return model
 
 
-def init_segmentor(config, checkpoint=None, device='cuda:0'):
+def init_segmentation(config, checkpoint=None, device='cuda:0',**kwargs):
     """Initialize a segmentor from config file.
     Args:
         config (str or :obj:`mmcv.Config`): Config file path or the config
@@ -163,7 +164,7 @@ class LoadImage:
         return results
 
 
-def inference_classifier(model, img):
+def inference_classification(model, img):
     """Inference image(s) with the classifier.
     Args:
         model (nn.Module): The loaded classifier.
@@ -199,7 +200,7 @@ def inference_classifier(model, img):
     result['pred_class'] = model.CLASSES[result['pred_label']]
     return result
 
-def inference_detector(model, imgs):
+def inference_detection(model, imgs):
     """Inference image(s) with the detector.
     Args:
         model (nn.Module): The loaded detector.
@@ -316,7 +317,7 @@ async def async_inference_detector(model, imgs):
     results = await model.aforward_test(rescale=True, **data)
     return results
 
-def inference_segmentor(model, imgs):
+def inference_segmentation(model, imgs):
     """Inference image(s) with the segmentor.
     Args:
         model (nn.Module): The loaded segmentor.
@@ -354,7 +355,8 @@ def show_result_pyplot_classification(model,
                        result,
                        fig_size=(15, 10),
                        title='result',
-                       wait_time=0):
+                       wait_time=0,
+                       **kwargs):
     """Visualize the classification results on the image.
     Args:
         model (nn.Module): The loaded classifier.
@@ -384,7 +386,8 @@ def show_result_pyplot_detection(model,
                        title='result',
                        wait_time=0,
                        palette=None,
-                       out_file=None):
+                       out_file=None,
+                       **kwargs):
     """Visualize the detection results on the image.
     Args:
         model (nn.Module): The loaded detector.
@@ -421,7 +424,8 @@ def show_result_pyplot_segmentation(model,
                        opacity=0.5,
                        title='',
                        block=True,
-                       out_file=None):
+                       out_file=None,
+                       **kwargs):
     """Visualize the segmentation results on the image.
     Args:
         model (nn.Module): The loaded segmentor.
@@ -453,58 +457,14 @@ def show_result_pyplot_segmentation(model,
     if out_file is not None:
         mmcv.imwrite(img, out_file)
 
-def init_mtlearner(config, checkpoint=None, device='cuda:0',options=None,task="detection"):
-    if task=="detection":
-        return init_detector(config,checkpoint, device, options)
-    if task=="classification":
-        return init_classifier(config,checkpoint, device, options)
-    else:
-        return init_segmentor(config,checkpoint, device)
+def init_mtlearner(task=DETECTION,*args,**kwargs):
+    method=eval(f"init_{task}")
+    return method(*args,**kwargs)
 
-
-def inference_mtlearner(model,imgs,task="detection"):
-    if task=="detection":
-        return inference_detector(model, imgs)
-    if task=="classification":
-        return inference_classifier(model, imgs)
-    else:
-        return inference_segmentor(model, imgs)
+def inference_mtlearner(task=DETECTION,*args,**kwargs):
+    method=eval(f"inference_{task}")
+    return method(*args,**kwargs)
     
-def show_result_pyplot(model,
-                        img,
-                        result,
-                        palette=None,
-                        fig_size=(15, 10),
-                        opacity=0.5,
-                        score_thr=0.3,
-                        title='result',
-                        wait_time=0,
-                        block=True,
-                        out_file=None,
-                        task='detection',):
-    if task=="detection":
-        show_result_pyplot_detection(model,
-                          img,
-                          result,
-                          score_thr,
-                          title,
-                          wait_time,
-                          palette,
-                          out_file)
-    elif task=="classification":
-        show_result_pyplot_classification(model,
-                       img,
-                       result,
-                       fig_size,
-                       title,
-                       wait_time)    
-    else:
-        show_result_pyplot_segmentation(model,
-                          img,
-                          result,
-                          palette,
-                          fig_size,
-                          opacity,
-                          title,
-                          block,
-                          out_file)
+def show_result_pyplot(task=DETECTION,*args,**kwargs):
+    method=eval(f"show_result_pyplot_{task}")
+    return method(*args,**kwargs)

@@ -119,14 +119,16 @@ def auto_scale_lr(cfg, distributed, logger):
                     f'base batch size: {base_batch_size}, '
                     f'will not scaling the LR ({cfg.optimizer.lr}).')
 
-def train_classifier(model,
+def train_classification(model,
                 dataset,
                 cfg,
+                *args,
                 distributed=False,
                 validate=False,
                 timestamp=None,
                 device=None,
-                meta=None):
+                meta=None,
+                **kwargs):
     """Train a model.
 
     This method will build dataloaders, wrap the model and build a runner
@@ -174,7 +176,7 @@ def train_classifier(model,
     # The specific dataloader settings
     train_loader_cfg = {**loader_cfg, **cfg.data.get('train_dataloader', {})}
 
-    data_loaders = [build_dataloader(ds, **train_loader_cfg, task=CLASSIFICATION) for ds in dataset]
+    data_loaders = [build_dataloader(CLASSIFICATION,ds, **train_loader_cfg) for ds in dataset]
 
     # put model on gpus
     if distributed:
@@ -259,7 +261,7 @@ def train_classifier(model,
 
     # register eval hooks
     if validate:
-        val_dataset = build_dataset(cfg.data.val, dict(test_mode=True),task=CLASSIFICATION)
+        val_dataset = build_dataset(CLASSIFICATION,cfg.data.val, dict(test_mode=True))
         # The specific dataloader settings
         val_loader_cfg = {
             **loader_cfg,
@@ -268,7 +270,7 @@ def train_classifier(model,
             'drop_last': False,  # Not drop last by default
             **cfg.data.get('val_dataloader', {}),
         }
-        val_dataloader = build_dataloader(val_dataset, **val_loader_cfg,task=CLASSIFICATION)
+        val_dataloader = build_dataloader(CLASSIFICATION,val_dataset, **val_loader_cfg)
         eval_cfg = cfg.get('evaluation', {})
         eval_cfg['by_epoch'] = cfg.runner['type'] != 'IterBasedRunner'
         eval_hook = DistEvalHookCls if distributed else EvalHookCls
@@ -284,13 +286,15 @@ def train_classifier(model,
         runner.load_checkpoint(cfg.load_from)
     runner.run(data_loaders, cfg.workflow)
 
-def train_segmentor(model,
+def train_segmentation(model,
                     dataset,
                     cfg,
+                    *args,
                     distributed=False,
                     validate=False,
                     timestamp=None,
-                    meta=None):
+                    meta=None,
+                    **kwargs):
     """Launch segmentor training."""
     logger = get_root_logger(cfg.log_level)
 
@@ -314,7 +318,7 @@ def train_segmentor(model,
 
     # The specific dataloader settings
     train_loader_cfg = {**loader_cfg, **cfg.data.get('train_dataloader', {})}
-    data_loaders = [build_dataloader(ds, **train_loader_cfg,task=SEGMENTATION) for ds in dataset]
+    data_loaders = [build_dataloader(SEGMENTATION,ds, **train_loader_cfg) for ds in dataset]
 
     # put model on devices
     if distributed:
@@ -368,7 +372,7 @@ def train_segmentor(model,
 
     # register eval hooks
     if validate:
-        val_dataset = build_dataset(cfg.data.val, dict(test_mode=True),task=SEGMENTATION)
+        val_dataset = build_dataset(SEGMENTATION,cfg.data.val, dict(test_mode=True))
         # The specific dataloader settings
         val_loader_cfg = {
             **loader_cfg,
@@ -376,7 +380,7 @@ def train_segmentor(model,
             'shuffle': False,  # Not shuffle by default
             **cfg.data.get('val_dataloader', {}),
         }
-        val_dataloader = build_dataloader(val_dataset, **val_loader_cfg,task=SEGMENTATION)
+        val_dataloader = build_dataloader(SEGMENTATION,val_dataset, **val_loader_cfg)
         eval_cfg = cfg.get('evaluation', {})
         eval_cfg['by_epoch'] = cfg.runner['type'] != 'IterBasedRunner'
         eval_hook = DistEvalHookSeg if distributed else EvalHookSeg
@@ -409,13 +413,15 @@ def train_segmentor(model,
         runner.load_checkpoint(cfg.load_from)
     runner.run(data_loaders, cfg.workflow)
 
-def train_detector(model,
+def train_detection(model,
                    dataset,
                    cfg,
+                   *args,
                    distributed=False,
                    validate=False,
                    timestamp=None,
-                   meta=None):
+                   meta=None,
+                   **kwargs):
 
     cfg = compat_cfg(cfg)
     logger = get_root_logger(log_level=cfg.log_level)
@@ -441,7 +447,7 @@ def train_detector(model,
         **cfg.data.get('train_dataloader', {})
     }
 
-    data_loaders = [build_dataloader(ds, **train_loader_cfg,task=DETECTION) for ds in dataset]
+    data_loaders = [build_dataloader(DETECTION,ds, **train_loader_cfg,) for ds in dataset]
 
     # put model on gpus
     if distributed:
@@ -517,9 +523,9 @@ def train_detector(model,
             # Replace 'ImageToTensor' to 'DefaultFormatBundle'
             cfg.data.val.pipeline = replace_ImageToTensor(
                 cfg.data.val.pipeline)
-        val_dataset = build_dataset(cfg.data.val, dict(test_mode=True),task=DETECTION)
+        val_dataset = build_dataset(DETECTION,cfg.data.val, dict(test_mode=True))
 
-        val_dataloader = build_dataloader(val_dataset, **val_dataloader_args,task=DETECTION)
+        val_dataloader = build_dataloader(DETECTION,val_dataset, **val_dataloader_args)
         eval_cfg = cfg.get('evaluation', {})
         eval_cfg['by_epoch'] = cfg.runner['type'] != 'IterBasedRunner'
         eval_hook = DistEvalHookDet if distributed else EvalHookDet
@@ -541,15 +547,7 @@ def train_detector(model,
     runner.run(data_loaders, cfg.workflow)
 
 
-def train_mtlearner(model,
-                dataset,
-                cfg,
-                distributed=False,
-                validate=False,
-                timestamp=None,
-                device=None,
-                meta=None,
-                task=DETECTION):
+def train_mtlearner(task=DETECTION,*args,**kwargs):
     """Train a model.
 
     This method will build dataloaders, wrap the model and build a runner
@@ -572,28 +570,5 @@ def train_mtlearner(model,
             environment info and seed, which will be logged in logger hook.
             Defaults to None.
     """
-    if task==CLASSIFICATION:
-        return train_classifier(model,
-                dataset,
-                cfg,
-                distributed,
-                validate,
-                timestamp,
-                device,
-                meta)
-    elif task==SEGMENTATION:
-        train_segmentor(model,
-                    dataset,
-                    cfg,
-                    distributed,
-                    validate,
-                    timestamp,
-                    meta)
-    else:
-        return train_detector(model,
-                   dataset,
-                   cfg,
-                   distributed,
-                   validate,
-                   timestamp,
-                   meta)
+    method=eval(f"train_{task}")
+    return method(*args,**kwargs)

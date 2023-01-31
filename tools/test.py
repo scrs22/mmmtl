@@ -10,6 +10,7 @@ import torch
 from mmcv import DictAction
 from mmcv.runner import (get_dist_info, init_dist, load_checkpoint,
                          wrap_fp16_model)
+from mmcv.utils import DictAction
 
 from mmmtl.apis import multi_gpu_test, single_gpu_test
 from mmmtl.datasets import build_dataloader, build_dataset
@@ -26,6 +27,8 @@ def parse_args():
     parser.add_argument(
         '--work-dir',
         help='the directory to save the file containing evaluation metrics')
+    parser.add_argument(
+        '--aug-test', action='store_true', help='Use Flip and Multi scale aug')
     parser.add_argument('--out', help='output result file')
     parser.add_argument(
         '--fuse-conv-bn',
@@ -115,7 +118,11 @@ def parse_args():
         help='Format the output results without perform evaluation. It is'
         'useful when you want to format the result to a specific format and '
         'submit it to the test server')
-
+    parser.add_argument(
+        '--opacity',
+        type=float,
+        default=0.5,
+        help='Opacity of painted segmentation map. In (0, 1] range.')
     parser.add_argument(
         '--launcher',
         choices=['none', 'pytorch', 'slurm', 'mpi'],
@@ -150,8 +157,9 @@ def main():
     cfg = mmcv.Config.fromfile(args.config)
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
+    
     if args.task=='detection':
-         update_data_root(cfg)
+        update_data_root(cfg)
 
         if args.cfg_options is not None:
             cfg.merge_from_dict(args.cfg_options)
@@ -163,7 +171,14 @@ def main():
     # set cudnn_benchmark
     if cfg.get('cudnn_benchmark', False):
         torch.backends.cudnn.benchmark = True
+    if args.aug_test:
+        # hard code index
+        cfg.data.test.pipeline[1].img_ratios = [
+            0.5, 0.75, 1.0, 1.25, 1.5, 1.75
+        ]
+        cfg.data.test.pipeline[1].flip = True
     cfg.model.pretrained = None
+    cfg.data.test.test_mode = True
 
     if args.gpu_ids is not None:
         cfg.gpu_ids = args.gpu_ids[0:1]
@@ -177,12 +192,13 @@ def main():
 
     # init distributed env first, since logger depends on the dist info.
     if args.launcher == 'none':
+        cfg.gpu_ids = [args.gpu_id]
         distributed = False
     else:
         distributed = True
         init_dist(args.launcher, **cfg.dist_params)
 
-    dataset = build_dataset(cfg.data.test, default_args=dict(test_mode=True),task=args.task)
+    dataset = build_dataset(args.task,cfg.data.test, default_args=dict(test_mode=True))
 
     # build the dataloader
     # The default loader config
@@ -207,10 +223,10 @@ def main():
         **cfg.data.get('test_dataloader', {}),
     }
     # the extra round_up data will be removed during gpu/cpu collect
-    data_loader = build_dataloader(dataset, **test_loader_cfg,task=args.task)
-
+    data_loader = build_dataloader(args.task,dataset, **test_loader_cfg)
+    cfg.model.train_cfg = None
     # build the model and load checkpoint
-    model = build_mtlearner(cfg.model)
+    model = build_mtlearner(cfg.model,test_cfg=cfg.get('test_cfg'))
     fp16_cfg = cfg.get('fp16', None)
     if fp16_cfg is not None:
         wrap_fp16_model(model)
@@ -219,11 +235,36 @@ def main():
     if 'CLASSES' in checkpoint.get('meta', {}):
         CLASSES = checkpoint['meta']['CLASSES']
     else:
-        from mmmtl.datasets import ImageNet
+        from mmmtl.datasets.cls import ImageNet
         warnings.simplefilter('once')
         warnings.warn('Class names are not saved in the checkpoint\'s '
                       'meta data, use imagenet by default.')
-        CLASSES = ImageNet.CLASSES
+        if args.task=='segmentation':
+            model.CLASSES = dataset.CLASSES
+        else:
+            CLASSES = ImageNet.CLASSES
+        if 'PALETTE' in checkpoint.get('meta', {}):
+            model.PALETTE = checkpoint['meta']['PALETTE']
+        else:
+            print('"PALETTE" not found in meta, use dataset.PALETTE instead')
+            model.PALETTE = dataset.PALETTE
+    eval_kwargs = {} if args.eval_options is None else args.eval_options
+
+    eval_on_format_results = (
+        args.eval is not None and 'cityscapes' in args.eval)
+    if eval_on_format_results:
+        assert len(args.eval) == 1, 'eval on format results is not ' \
+                                    'applicable for metrics other than ' \
+                                    'cityscapes'
+    if args.format_only or eval_on_format_results:
+        if 'imgfile_prefix' in eval_kwargs:
+            tmpdir = eval_kwargs['imgfile_prefix']
+        else:
+            tmpdir = '.format_cityscapes'
+            eval_kwargs.setdefault('imgfile_prefix', tmpdir)
+        mmcv.mkdir_or_exist(tmpdir)
+    else:
+        tmpdir = None
 
     if not distributed:
         model = wrap_non_distributed_model(
@@ -242,9 +283,13 @@ def main():
     else:
         model = wrap_distributed_model(
             model, device=cfg.device, broadcast_buffers=False)
-        outputs = multi_gpu_test(model, data_loader, args.tmpdir,
-                                 args.gpu_collect,task=args.task)
-
+        outputs = multi_gpu_test( args.task,model, 
+                                  data_loader, 
+                                  tmpdir=args.tmpdir,
+                                  gpu_collect=args.gpu_collect,
+                                  pre_eval=args.eval is not None and not eval_on_format_results,
+                                  format_only=args.format_only or eval_on_format_results,
+                                  format_args=eval_kwargs)
     rank, _ = get_dist_info()
     if rank == 0:
         results = {}
@@ -264,6 +309,15 @@ def main():
                 else:
                     raise ValueError(f'Unsupport metric type: {type(v)}')
                 print(f'\n{k} : {v}')
+
+        if args.eval:
+            eval_kwargs.update(metric=args.eval)
+            metric = dataset.evaluate(results, **eval_kwargs)
+            metric_dict = dict(config=args.config, metric=metric)
+            mmcv.dump(metric_dict, json_file, indent=4)
+            if tmpdir is not None and eval_on_format_results:
+                # remove tmp dir when cityscapes evaluation
+                shutil.rmtree(tmpdir)
         if args.out:
             if 'none' not in args.out_items:
                 scores = np.vstack(outputs)

@@ -19,11 +19,13 @@ from mmmtl.core import encode_mask_results
 from mmmtl.utils.tasks import *
 
 
-def single_gpu_test_det(model,
+def single_gpu_test_detection(model,
                     data_loader,
+                    *args,
                     show=False,
                     out_dir=None,
-                    show_score_thr=0.3):
+                    show_score_thr=0.3,
+                    **kwargs):
     model.eval()
     results = []
     dataset = data_loader.dataset
@@ -83,7 +85,7 @@ def single_gpu_test_det(model,
     return results
 
 
-def multi_gpu_test_det(model, data_loader, tmpdir=None, gpu_collect=False):
+def multi_gpu_test_detection(model, data_loader, *args,tmpdir=None, gpu_collect=False, **kwargs):
     """Test model with multiple gpus.
 
     This method tests model with multiple gpus and collects the results
@@ -138,8 +140,9 @@ def multi_gpu_test_det(model, data_loader, tmpdir=None, gpu_collect=False):
     return results
 
 
-def single_gpu_test_cls(model,
+def single_gpu_test_classification(model,
                     data_loader,
+                    *args,
                     show=False,
                     out_dir=None,
                     **show_kwargs):
@@ -208,7 +211,7 @@ def single_gpu_test_cls(model,
     return results
 
 
-def multi_gpu_test_cls(model, data_loader, tmpdir=None, gpu_collect=False):
+def multi_gpu_test_classification(model, data_loader,*args, tmpdir=None, gpu_collect=False,**kwargs):
     """Test model with multiple gpus.
 
     This method tests model with multiple gpus and collects the results
@@ -357,15 +360,17 @@ def np2tmp(array, temp_file_name=None, tmpdir=None):
     return temp_file_name
 
 
-def single_gpu_test_seg(model,
+def single_gpu_test_segmentation(model,
                     data_loader,
+                    *args,
                     show=False,
                     out_dir=None,
                     efficient_test=False,
                     opacity=0.5,
                     pre_eval=False,
                     format_only=False,
-                    format_args={}):
+                    format_args={},
+                    **kwargs):
     """Test with single GPU by progressive mode.
 
     Args:
@@ -463,14 +468,16 @@ def single_gpu_test_seg(model,
     return results
 
 
-def multi_gpu_test_seg(model,
+def multi_gpu_test_segmentation(model,
                    data_loader,
+                   *args,
                    tmpdir=None,
                    gpu_collect=False,
                    efficient_test=False,
                    pre_eval=False,
                    format_only=False,
-                   format_args={}):
+                   format_args={},
+                   **kwargs):
     """Test model with multiple gpus by progressive mode.
 
     This method tests model with multiple gpus and collects the results
@@ -558,52 +565,12 @@ def multi_gpu_test_seg(model,
         results = collect_results_cpu(results, len(dataset), tmpdir)
     return results
 
-def multi_gpu_test(model,
-                   data_loader,
-                   tmpdir=None,
-                   gpu_collect=False,
-                   efficient_test=False,
-                   pre_eval=False,
-                   format_only=False,
-                   format_args={},
-                   task=DETECTION):
-    if task==DETECTION:
-        multi_gpu_test_det(model, data_loader, tmpdir, gpu_collec)
-    elif task==CLASSIFICATION:
-        multi_gpu_test_cls(model, data_loader, tmpdir, gpu_collec)
-    else:
-        multi_gpu_test_seg(model,
-                    data_loader,
-                    tmpdir,
-                    gpu_collect,
-                    efficient_test,
-                    pre_eval,
-                    format_only,
-                    format_args)
+def multi_gpu_test(task, *args,**kwargs):
+    method=eval(f"multi_gpu_test_{task}")
+    return method(*args,**kwargs)
 
-def single_gpu_test(model,
-                    data_loader,
-                    show=False,
-                    out_dir=None,
-                    efficient_test=False,
-                    opacity=0.5,
-                    pre_eval=False,
-                    format_only=False,
-                    format_args={},
-                    show_score_thr=None,
-                    task=DETECTION,
-                    **show_kwargs):
-    if task==DETECTION:
-        single_gpu_test_det(model, data_loader, show, out_dir,show_score_thr)
-    elif task==CLASSIFICATION:
-        single_gpu_test_cls(model, data_loader, show, out_dir, **show_kwargs)
-    else:
-        single_gpu_test_seg(model,
-                    data_loader,
-                    tmpdir,
-                    gpu_collect,
-                    efficient_test,
-                    pre_eval,
-                    format_only,
-                    format_args)
+
+def single_gpu_test(task, *args,**kwargs):
+    method=eval(f"single_gpu_test_{task}")
+    return method(*args,**kwargs)
     

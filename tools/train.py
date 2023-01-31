@@ -184,11 +184,11 @@ def main():
     model.init_weights()
      # init rfnext if 'RFSearchHook' is defined in cfg
     rfnext_init_model(model, cfg=cfg)
-    datasets = [build_dataset(cfg.data.train,task=args.task)]
+    datasets = [build_dataset(args.task,cfg.data.train)]
     if len(cfg.workflow) == 2: # need validation
         val_dataset = copy.deepcopy(cfg.data.val)
         val_dataset.pipeline = cfg.data.train.pipeline
-        datasets.append(build_dataset(val_dataset,task=args.task))
+        datasets.append(build_dataset(args.task,val_dataset))
 
     # save mmmtl version, config file content and class names in
     # runner as meta data
@@ -200,14 +200,15 @@ def main():
 
     # add an attribute for visualization convenience
     train_mtlearner(
+        args.task,
         model,
         datasets,
         cfg,
         distributed=distributed,
-        validate=(not args.no_validate),
+        validate=(not args.no_validate),        
         timestamp=timestamp,
-        meta=meta,
-        task=args.task,
+        device=cfg.device,
+        meta=meta,                             
     )
 
 
