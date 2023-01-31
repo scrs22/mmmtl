@@ -1,7 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from .base_dataset import BaseDataset
-from .builder import (CLS_DATASETS, CLS_PIPELINES, SAMPLERS, build_dataloader_cls,
-                      build_dataset_cls, build_sampler)
+from .builder import (CLS_DATASETS, CLS_PIPELINES, SAMPLERS, build_dataloader_classification,
+                      build_dataset_classification, build_sampler)
 from .cifar import CIFAR10, CIFAR100
 from .cub import CUB
 from .custom import CustomDataset
@@ -17,7 +17,7 @@ from .voc import VOC
 
 __all__ = [
     'BaseDataset', 'ImageNet', 'CIFAR10', 'CIFAR100', 'MNIST', 'FashionMNIST',
-    'VOC', 'MultiLabelDataset', 'build_dataloader_cls', 'build_dataset_cls',
+    'VOC', 'MultiLabelDataset', 'build_dataloader_classification', 'build_dataset_classification',
     'DistributedSampler', 'ConcatDataset', 'RepeatDataset',
     'ClassBalancedDataset', 'CLS_DATASETS', 'CLS_PIPELINES', 'ImageNet21k', 'SAMPLERS',
     'build_sampler', 'RepeatAugSampler', 'KFoldDataset', 'CUB',

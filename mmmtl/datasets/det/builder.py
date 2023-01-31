@@ -51,29 +51,29 @@ def _concat_dataset(cfg, default_args=None):
             data_cfg['seg_prefix'] = seg_prefixes[i]
         if isinstance(proposal_files, (list, tuple)):
             data_cfg['proposal_file'] = proposal_files[i]
-        datasets.append(build_dataset_det(data_cfg, default_args))
+        datasets.append(build_dataset_detection(data_cfg, default_args))
 
     return ConcatDataset(datasets, separate_eval)
 
 
-def build_dataset_det(cfg, default_args=None):
+def build_dataset_detection(cfg,*args, default_args=None,**kwargs):
     from .dataset_wrappers import (ClassBalancedDataset, ConcatDataset,
                                    MultiImageMixDataset, RepeatDataset)
     if isinstance(cfg, (list, tuple)):
-        dataset = ConcatDataset([build_dataset_det(c, default_args) for c in cfg])
+        dataset = ConcatDataset([build_dataset_detection(c, default_args) for c in cfg])
     elif cfg['type'] == 'ConcatDataset':
         dataset = ConcatDataset(
-            [build_dataset_det(c, default_args) for c in cfg['datasets']],
+            [build_dataset_detection(c, default_args) for c in cfg['datasets']],
             cfg.get('separate_eval', True))
     elif cfg['type'] == 'RepeatDataset':
         dataset = RepeatDataset(
-            build_dataset_det(cfg['dataset'], default_args), cfg['times'])
+            build_dataset_detection(cfg['dataset'], default_args), cfg['times'])
     elif cfg['type'] == 'ClassBalancedDataset':
         dataset = ClassBalancedDataset(
-            build_dataset_det(cfg['dataset'], default_args), cfg['oversample_thr'])
+            build_dataset_detection(cfg['dataset'], default_args), cfg['oversample_thr'])
     elif cfg['type'] == 'MultiImageMixDataset':
         cp_cfg = copy.deepcopy(cfg)
-        cp_cfg['dataset'] = build_dataset_det(cp_cfg['dataset'])
+        cp_cfg['dataset'] = build_dataset_detection(cp_cfg['dataset'])
         cp_cfg.pop('type')
         dataset = MultiImageMixDataset(**cp_cfg)
     elif isinstance(cfg.get('ann_file'), (list, tuple)):
@@ -84,9 +84,10 @@ def build_dataset_det(cfg, default_args=None):
     return dataset
 
 
-def build_dataloader_det(dataset,
+def build_dataloader_detection(dataset,
                      samples_per_gpu,
                      workers_per_gpu,
+                     *args,
                      num_gpus=1,
                      dist=True,
                      shuffle=True,

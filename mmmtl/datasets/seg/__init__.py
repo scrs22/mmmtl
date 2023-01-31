@@ -1,6 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from .ade import ADE20KDataset
-from .builder import  build_dataloader_seg, build_dataset_seg, SAMPLERS,SEG_DATASETS,SEG_PIPELINES
+from .builder import  build_dataloader_segmentation, build_dataset_segmentation, SAMPLERS,SEG_DATASETS,SEG_PIPELINES
 from .chase_db1 import ChaseDB1Dataset
 from .cityscapes import CityscapesDataset
 from .coco_stuff import COCOStuffDataset
@@ -23,7 +23,7 @@ from .stare import STAREDataset
 from .voc import PascalVOCDataset
 
 __all__ = [
-    'CustomDataset', 'build_dataloader_seg', 'ConcatDataset', 'RepeatDataset', 'build_dataset_seg', 'CityscapesDataset',
+    'CustomDataset', 'build_dataloader_segmentation', 'ConcatDataset', 'RepeatDataset', 'build_dataset_segmentation', 'CityscapesDataset',
     'PascalVOCDataset', 'ADE20KDataset', 'PascalContextDataset','SAMPLERS','SEG_DATASETS','SEG_PIPELINES',
     'PascalContextDataset59', 'ChaseDB1Dataset', 'DRIVEDataset', 'HRFDataset',
     'STAREDataset', 'DarkZurichDataset', 'NightDrivingDataset',

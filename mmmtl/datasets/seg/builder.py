@@ -59,35 +59,35 @@ def _concat_dataset(cfg, default_args=None):
             data_cfg['ann_dir'] = ann_dir[i]
         if isinstance(split, (list, tuple)):
             data_cfg['split'] = split[i]
-        datasets.append(build_dataset_seg(data_cfg, default_args))
+        datasets.append(build_dataset_segmentation(data_cfg, default_args))
 
     return ConcatDataset(datasets, separate_eval)
 
 
-def build_dataset_seg(cfg, default_args=None):
+def build_dataset_segmentation(cfg, default_args=None):
     """Build datasets."""
     from .dataset_wrappers import (ConcatDataset, MultiImageMixDataset,
                                    RepeatDataset)
     if isinstance(cfg, (list, tuple)):
-        dataset = ConcatDataset([build_dataset_seg(c, default_args) for c in cfg])
+        dataset = ConcatDataset([build_dataset_segmentation(c, default_args) for c in cfg])
     elif cfg['type'] == 'RepeatDataset':
         dataset = RepeatDataset(
-            build_dataset_seg(cfg['dataset'], default_args), cfg['times'])
+            build_dataset_segmentation(cfg['dataset'], default_args), cfg['times'])
     elif cfg['type'] == 'MultiImageMixDataset':
         cp_cfg = copy.deepcopy(cfg)
-        cp_cfg['dataset'] = build_dataset_seg(cp_cfg['dataset'])
+        cp_cfg['dataset'] = build_dataset_segmentation(cp_cfg['dataset'])
         cp_cfg.pop('type')
         dataset = MultiImageMixDataset(**cp_cfg)
     elif isinstance(cfg.get('img_dir'), (list, tuple)) or isinstance(
             cfg.get('split', None), (list, tuple)):
         dataset = _concat_dataset(cfg, default_args)
     else:
-        dataset = build_from_cfg(cfg, DATASETS, default_args)
+        dataset = build_from_cfg(cfg, SEG_DATASETS, default_args)
 
     return dataset
 
 
-def build_dataloader_seg(dataset,
+def build_dataloader_segmentation(dataset,
                      samples_per_gpu,
                      workers_per_gpu,
                      num_gpus=1,

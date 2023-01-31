@@ -29,26 +29,26 @@ CLS_PIPELINES = Registry('pipeline')
 SAMPLERS = Registry('sampler')
 
 
-def build_dataset_cls(cfg, default_args=None):
+def build_dataset_classification(cfg, *args,default_args=None,**kawrgs):
     from .dataset_wrappers import (ClassBalancedDataset, ConcatDataset,
                                    KFoldDataset, RepeatDataset)
     if isinstance(cfg, (list, tuple)):
-        dataset = ConcatDataset([build_dataset(c, default_args) for c in cfg])
+        dataset = ConcatDataset([build_dataset_classification(c, default_args) for c in cfg])
     elif cfg['type'] == 'ConcatDataset':
         dataset = ConcatDataset(
-            [build_dataset_cls(c, default_args) for c in cfg['datasets']],
+            [build_dataset_classification(c, default_args) for c in cfg['datasets']],
             separate_eval=cfg.get('separate_eval', True))
     elif cfg['type'] == 'RepeatDataset':
         dataset = RepeatDataset(
-            build_dataset_cls(cfg['dataset'], default_args), cfg['times'])
+            build_dataset_classification(cfg['dataset'], default_args), cfg['times'])
     elif cfg['type'] == 'ClassBalancedDataset':
         dataset = ClassBalancedDataset(
-            build_dataset_cls(cfg['dataset'], default_args), cfg['oversample_thr'])
+            build_dataset_classification(cfg['dataset'], default_args), cfg['oversample_thr'])
     elif cfg['type'] == 'KFoldDataset':
         cp_cfg = copy.deepcopy(cfg)
         if cp_cfg.get('test_mode', None) is None:
             cp_cfg['test_mode'] = (default_args or {}).pop('test_mode', False)
-        cp_cfg['dataset'] = build_dataset_cls(cp_cfg['dataset'], default_args)
+        cp_cfg['dataset'] = build_dataset_classification(cp_cfg['dataset'], default_args)
         cp_cfg.pop('type')
         dataset = KFoldDataset(**cp_cfg)
     else:
@@ -57,9 +57,10 @@ def build_dataset_cls(cfg, default_args=None):
     return dataset
 
 
-def build_dataloader_cls(dataset,
+def build_dataloader_classification(dataset,
                      samples_per_gpu,
                      workers_per_gpu,
+                     *args,
                      num_gpus=1,
                      dist=True,
                      shuffle=True,
