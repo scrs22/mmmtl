@@ -183,11 +183,11 @@ def train_single_fold(args, cfg, fold, distributed, seed):
     model = build_mtlearner(cfg.model)
     model.init_weights()
 
-    datasets = [build_dataset(cfg.data.train)]
+    datasets = [build_dataset(args.task,cfg.data.train)]
     if len(cfg.workflow) == 2:
         val_dataset = copy.deepcopy(cfg.data.val)
         val_dataset.pipeline = cfg.data.train.pipeline
-        datasets.append(build_dataset(val_dataset))
+        datasets.append(build_dataset(args.task,val_dataset))
     meta.update(
         dict(
             mmcls_version=__version__,
@@ -196,11 +196,12 @@ def train_single_fold(args, cfg, fold, distributed, seed):
             kfold=dict(fold=fold, num_splits=args.num_splits)))
     # add an attribute for visualization convenience
     train_mtlearner(
+        args.task,
         model,
         datasets,
         cfg,
         distributed=distributed,
-        validate=(not args.no_validate),
+        validate=(not args.no_validate),        
         timestamp=timestamp,
         device='cpu' if args.device == 'cpu' else 'cuda',
         meta=meta)

@@ -6,7 +6,7 @@ import mmcv
 from mmcv import DictAction
 
 from mmmtl.datasets import build_dataset
-from mmmtl.models import build_classifier
+from mmmtl.models import build_mtlearner
 
 
 def parse_args():
@@ -62,7 +62,7 @@ def main():
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
 
-    model = build_classifier(cfg.model)
+    model = build_mtlearner(cfg.model)
 
     # build the dataloader
     dataset = build_dataset(cfg.data.test)
