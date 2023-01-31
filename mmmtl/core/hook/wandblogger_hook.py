@@ -279,10 +279,10 @@ class MMClsWandbHook(WandbLoggerHook):
 
     def _add_ground_truth(self):
         # Get image loading pipeline
-        from mmdet.datasets.pipelines import LoadImageFromFile
+        from mmmtl.datasets.pipelines.cls import LoadImageFromFileCls
         img_loader = None
         for t in self.val_dataset.pipeline.transforms:
-            if isinstance(t, LoadImageFromFile):
+            if isinstance(t, LoadImageFromFileCls):
                 img_loader = t
 
         CLASSES = self.val_dataset.CLASSES
@@ -661,10 +661,10 @@ class MMDetWandbHook(WandbLoggerHook):
 
     def _add_ground_truth(self, runner):
         # Get image loading pipeline
-        from mmdet.datasets.pipelines import LoadImageFromFile
+        from mmmtl.datasets.pipelines.det import LoadImageFromFileDet
         img_loader = None
         for t in self.val_dataset.pipeline.transforms:
-            if isinstance(t, LoadImageFromFile):
+            if isinstance(t, LoadImageFromFileDet):
                 img_loader = t
 
         if img_loader is None:
@@ -1026,11 +1026,11 @@ class MMSegWandbHook(WandbLoggerHook):
             if isinstance(hook, CheckpointHook):
                 self.ckpt_hook = hook
             if isinstance(hook, EvalHookSeg):
-                from mmseg.apis import single_gpu_test
+                from mmmtl.apis import single_gpu_test
                 self.eval_hook = hook
                 self.test_fn = single_gpu_test
             if isinstance(hook, DistEvalHookSeg):
-                from mmseg.apis import multi_gpu_test
+                from mmmtl.apis import multi_gpu_test
                 self.eval_hook = hook
                 self.test_fn = multi_gpu_test
 
@@ -1167,10 +1167,10 @@ class MMSegWandbHook(WandbLoggerHook):
 
     def _add_ground_truth(self, runner):
         # Get image loading pipeline
-        from mmseg.datasets.pipelines import LoadImageFromFile
+        from mmmtl.datasets.pipelines.seg import LoadImageFromFileSeg
         img_loader = None
         for t in self.val_dataset.pipeline.transforms:
-            if isinstance(t, LoadImageFromFile):
+            if isinstance(t, LoadImageFromFileSeg):
                 img_loader = t
 
         if img_loader is None:

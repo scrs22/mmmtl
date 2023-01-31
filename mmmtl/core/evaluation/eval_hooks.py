@@ -198,7 +198,8 @@ class DistEvalHookDet(BaseDistEvalHook):
             runner.model,
             self.dataloader,
             tmpdir=tmpdir,
-            gpu_collect=self.gpu_collect)
+            gpu_collect=self.gpu_collect,
+            )
         self.latest_results = results
         if runner.rank == 0:
             print('\n')
